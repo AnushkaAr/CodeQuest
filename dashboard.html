@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeQuest Pro - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+</head>
+<body>
+
+    <nav class="navbar-stitch py-3 sticky-top">
+        <div class="container d-flex align-items-center">
+            <a class="navbar-brand text-white font-brand fs-4" href="dashboard.html">
+                <i class="fa-solid fa-gamepad text-gradient me-2"></i>Code<span class="text-gradient">Quest</span>
+            </a>
+            <div class="ms-auto d-flex align-items-center gap-4">
+                <div class="d-none d-md-block text-muted">Coder: <strong class="text-white display-username">_</strong></div>
+                <div class="badge bg-dark border border-secondary px-3 py-2 fs-6 rounded-pill">
+                    <i class="fa-solid fa-star text-warning me-2"></i><span class="display-score">0</span> XP
+                </div>
+                <button class="btn btn-outline-danger btn-sm btn-logout"><i class="fa-solid fa-power-off"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5 animate-fade-in">
+        <div class="row mb-5">
+            <div class="col-lg-8">
+                <h1 class="font-brand display-4 fw-bold mb-3">The Astral <span class="text-gradient">Initiative</span></h1>
+                <p class="text-muted fs-5">Engage in the admin-stitched story levels or explore sandbox modules to earn XP.</p>
+            </div>
+        </div>
+
+        <!-- DYNAMIC STITCHED CAMPAIGN -->
+        <h3 class="font-brand text-white mb-4"><i class="fa-solid fa-map text-gradient me-2"></i> Story Campaign</h3>
+        <div class="row g-4 mb-5" id="campaignContainer">
+            <div class="col-12"><p class="text-muted">Initializing levels...</p></div>
+        </div>
+
+        <!-- FREE PLAY -->
+        <h3 class="font-brand text-white mb-4"><i class="fa-solid fa-cubes text-gradient me-2"></i> Sandbox Modules</h3>
+        <div class="row g-4 pb-5">
+            <div class="col-md-4">
+                <div class="glass-panel p-4 h-100 d-flex flex-column border-primary">
+                    <i class="fa-solid fa-bug fs-1 text-primary mb-3"></i>
+                    <h4 class="text-white mb-2">Bug Squasher</h4>
+                    <p class="text-muted small">Analyze code snippets and identify syntax faults dynamically.</p>
+                    <a href="games/fixcode.html" class="btn-stitch w-100 mt-auto" style="opacity:0.5; pointer-events:none;">Under Construction</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ensure Auth check executes -->
+    <script src="app.js"></script>
+    <script>
+        window.renderCampaign = async () => {
+            if (!supabase || !window.App || !window.App.profile) return;
+            const uLvl = window.App.profile.current_level || 1;
+            
+            const { data, error } = await supabase.from('levels').select('*').order('level_number', {ascending: true});
+            const c = document.getElementById('campaignContainer');
+            c.innerHTML = (!data || data.length === 0) ? '<p class="text-muted ms-3">No active levels found.</p>' : '';
+            
+            data?.forEach(lvl => {
+                // strict logic fixing
+                const isLocked = lvl.level_number > uLvl; 
+                const isDone = lvl.level_number < uLvl; 
+                
+                const brd = isLocked ? 'border-secondary' : (isDone ? 'border-success' : 'border-primary');
+                const sdo = isLocked ? 'opacity: 0.5;' : '';
+                
+                // Prominent Solved status icons vs Unlocked vs Locked
+                const topBadge = isLocked ? `<span class="badge bg-dark border border-secondary text-muted py-2"><i class="fa-solid fa-lock me-1"></i> Lvl ${lvl.level_number}</span>`
+                               : (isDone ? `<span class="badge bg-success bg-opacity-25 border border-success text-success py-2"><i class="fa-solid fa-check-double me-1"></i> SOLVED</span>`
+                               : `<span class="badge bg-dark border border-primary text-primary py-2"><i class="fa-solid fa-unlock me-1"></i> ACTIVE SECTOR</span>`);
+                
+                // Button Logic! Completely change visual mapping.
+                let btn = isLocked ? `<button class="btn btn-secondary w-100 disabled text-white" style="background:rgba(255,255,255,0.05); border:none;"><i class="fa-solid fa-lock me-2"></i> Firewall Active</button>` 
+                        : (isDone ? `<a href="games/level.html?id=${lvl.id}" class="btn btn-outline-success w-100"><i class="fa-solid fa-rotate-right me-2"></i> Play Again</a>`
+                        : `<a href="games/level.html?id=${lvl.id}" class="btn-stitch w-100"><i class="fa-solid fa-play me-2"></i> Execute Code</a>`);
+                
+                c.innerHTML += `
+                <div class="col-md-6 col-lg-3">
+                    <div class="glass-panel p-4 h-100 d-flex flex-column ${brd}" style="${sdo}">
+                        <div class="d-flex justify-content-between mb-3 align-items-center">
+                            <h2 class="mb-0 text-${isDone ? 'success' : (isLocked ? 'secondary' : 'primary')} font-brand fw-bold">${lvl.level_number}.</h2>
+                            ${topBadge}
+                        </div>
+                        <h5 class="text-white mb-2">${lvl.title}</h5>
+                        <p class="text-muted small">${lvl.description}</p>
+                        <div class="mt-auto pt-3">
+                            <span class="text-${isDone ? 'success' : 'warning'} small fw-bold mb-3 d-block">${isDone ? 'Bounty Collected' : '+' + lvl.xp_reward + ' XP'}</span>
+                            ${btn}
+                        </div>
+                    </div>
+                </div>`;
+            });
+        };
+    </script>
+</body>
+</html>

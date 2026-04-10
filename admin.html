@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeQuest Pro - Admin Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+</head>
+<body style="overflow-x: hidden;">
+
+    <div class="d-flex">
+        
+        <!-- SIDEBAR -->
+        <div class="glass-panel" style="width: 280px; height: 100vh; position: fixed; border-radius: 0; border-left: none; border-top: none; border-bottom: none; z-index: 100;">
+            <div class="p-4">
+                <h3 class="text-white font-brand mb-5"><i class="fa-solid fa-gamepad text-gradient me-2"></i>Code<span class="text-gradient">Quest</span></h3>
+                
+                <ul class="nav flex-column gap-2 mb-auto">
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link text-white" id="tab-overview" onclick="switchView('overview')" style="background: rgba(99, 102, 241, 0.15); border-radius: 8px;"><i class="fa-solid fa-chart-line me-3" style="width: 20px;"></i> Overview</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link text-muted" id="tab-levels" onclick="switchView('levels')"><i class="fa-solid fa-layer-group me-3" style="width: 20px;"></i> Builder UI</a>
+                    </li>
+                </ul>
+
+                <div class="mt-5 pt-4 border-top border-secondary position-absolute bottom-0 mb-4" style="width: calc(100% - 48px);">
+                     <button class="btn btn-outline-danger w-100 btn-logout"><i class="fa-solid fa-power-off me-2"></i> Log Out</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN LAYOUT -->
+        <div style="margin-left: 280px; padding: 40px; width: calc(100% - 280px);">
+            
+            <!-- OVERVIEW VIEW -->
+            <div id="view-overview" class="admin-view animate-fade-in">
+                <h1 class="font-brand display-5 fw-bold mb-4">Command <span class="text-gradient">Center</span></h1>
+                
+                <div class="glass-panel p-4 mt-4">
+                    <h4 class="text-white mb-4"><i class="fa-solid fa-users text-primary me-2"></i> Registered Students</h4>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                            <thead><tr class="text-muted"><th class="border-secondary">User</th><th class="border-secondary">Role</th><th class="border-secondary">Current Lvl</th><th class="border-secondary text-end">Total XP</th></tr></thead>
+                            <tbody id="studentTableBody"><tr><td colspan="4" class="text-center text-muted border-secondary py-4">Syncing database...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEVEL BUILDER VIEW -->
+            <div id="view-levels" class="admin-view animate-fade-in" style="display: none;">
+                <h1 class="font-brand display-5 fw-bold mb-4">Stitch <span class="text-gradient">Levels</span></h1>
+                
+                <div class="row g-4">
+                    <!-- Builder Form -->
+                    <div class="col-lg-5">
+                        <div class="glass-panel p-4">
+                            <h4 class="text-white mb-4"><i class="fa-solid fa-hammer text-primary me-2"></i> Blueprint Editor</h4>
+                            
+                            <form id="levelBuilderForm">
+                                <div class="mb-3">
+                                    <label class="text-muted small mb-1">Level Title</label>
+                                    <input type="text" id="bTitle" class="form-control form-stitch" required>
+                                </div>
+                                <div class="row mb-3 g-2">
+                                    <div class="col-6">
+                                        <label class="text-muted small mb-1">Sequence #</label>
+                                        <input type="number" id="bNum" class="form-control form-stitch" placeholder="1, 2, 3..." required>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small mb-1">XP Bounty</label>
+                                        <input type="number" id="bXP" class="form-control form-stitch" value="25" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small mb-1">Intel Description</label>
+                                    <textarea id="bDesc" class="form-control form-stitch" rows="2" placeholder="Briefing for the cadet..." required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small mb-1">Code / Problem Snippet</label>
+                                    <textarea id="bQuest" class="form-control form-stitch font-monospace" rows="4" placeholder="function hack() { ... }" required></textarea>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="text-muted small mb-1">Strict Expected Output</label>
+                                    <input type="text" id="bAns" class="form-control form-stitch" placeholder="e.g., true, 404, variableName" required>
+                                </div>
+                                
+                                <button type="submit" id="bSubmit" class="btn-stitch w-100">Deploy to Server <i class="fa-solid fa-cloud-arrow-up ms-2"></i></button>
+                                <div id="bMsg" class="mt-3 text-center small fw-bold"></div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Live Levels -->
+                    <div class="col-lg-7">
+                        <div class="glass-panel p-4 h-100">
+                             <h4 class="text-white mb-4"><i class="fa-solid fa-database text-primary me-2"></i> Active Matrix</h4>
+                             <div class="table-responsive">
+                                <table class="table table-dark align-middle" style="background: transparent;">
+                                    <thead><tr class="text-muted"><th class="border-secondary">Lvl</th><th class="border-secondary w-50">Title</th><th class="border-secondary">Output</th><th class="border-secondary text-end">Bounty</th></tr></thead>
+                                    <tbody id="levelsTableBody"><tr><td colspan="4" class="text-center text-muted border-secondary py-4">Syncing levels...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div> <!-- End Admin Dashboard -->
+    
+    <script src="app.js"></script>
+    <script>
+        // Global hook for app.js to trigger when profile loaded
+        window.renderAdminBoards = () => { pingStudents(); pingLevels(); };
+
+        const switchView = (v) => {
+            document.querySelectorAll('.admin-view').forEach(e => e.style.display = 'none');
+            document.querySelectorAll('.nav-link').forEach(e => {
+                e.classList.remove('text-white'); e.classList.add('text-muted');
+                e.style.background = 'transparent'; e.style.borderRadius = '0';
+            });
+            
+            document.getElementById('view-' + v).style.display = 'block';
+            const tab = document.getElementById('tab-' + v);
+            tab.classList.remove('text-muted'); tab.classList.add('text-white');
+            tab.style.background = 'rgba(99, 102, 241, 0.15)'; tab.style.borderRadius = '8px';
+        };
+
+        // --- Data Fetchers ---
+        async function pingStudents() {
+            if(!supabase || !window.App || !window.App.user) return;
+            const { data, error } = await supabase.from('profiles').select('*').order('score', { ascending: false });
+            const tbody = document.getElementById('studentTableBody');
+            if(error) return tbody.innerHTML = `<tr><td colspan="4" class="text-danger py-4">${error.message}</td></tr>`;
+            
+            tbody.innerHTML = '';
+            data.forEach(p => {
+                const isAd = p.role === 'admin';
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="border-secondary py-3 text-white fw-bold">${p.username}</td>
+                        <td class="border-secondary"><span class="badge ${isAd ? 'bg-danger':'bg-primary'} bg-opacity-25 ${isAd?'text-danger':'text-primary'}">${p.role.toUpperCase()}</span></td>
+                        <td class="border-secondary"><i class="fa-solid fa-angles-up text-muted me-2"></i> ${p.current_level}</td>
+                        <td class="border-secondary text-end text-warning fw-bold">${p.score} XP</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function pingLevels() {
+            if(!supabase || !window.App || !window.App.user) return;
+            const { data, error } = await supabase.from('levels').select('level_number, title, xp_reward, expected_answer').order('level_number', {ascending: true});
+            const tbody = document.getElementById('levelsTableBody');
+            if(error) return tbody.innerHTML = `<tr><td colspan="4" class="text-danger py-4">${error.message}</td></tr>`;
+            if(!data.length) return tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted border-secondary py-4">Matrix is completely empty.</td></tr>`;
+            
+            tbody.innerHTML = '';
+            data.forEach(l => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="border-secondary py-3 fw-bold">${l.level_number}</td>
+                        <td class="border-secondary text-white">${l.title}</td>
+                        <td class="border-secondary font-monospace text-info small">${l.expected_answer}</td>
+                        <td class="border-secondary text-end text-warning fw-bold">+${l.xp_reward}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- Form Uploader ---
+        document.getElementById('levelBuilderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('bSubmit');
+            const msg = document.getElementById('bMsg');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Deploying...';
+            
+            const payload = {
+                title: document.getElementById('bTitle').value,
+                level_number: parseInt(document.getElementById('bNum').value),
+                description: document.getElementById('bDesc').value,
+                question: document.getElementById('bQuest').value,
+                expected_answer: document.getElementById('bAns').value,
+                xp_reward: parseInt(document.getElementById('bXP').value)
+            };
+            
+            const { error } = await supabase.from('levels').insert([payload]);
+            if(error) {
+                msg.textContent = "Compile Error: " + error.message; msg.className = "mt-3 small fw-bold text-danger";
+            } else {
+                msg.textContent = "Deployment successful."; msg.className = "mt-3 small fw-bold text-success";
+                document.getElementById('levelBuilderForm').reset();
+                pingLevels(); 
+            }
+            btn.innerHTML = 'Deploy to Server <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
+        });
+
+    </script>
+</body>
+</html>

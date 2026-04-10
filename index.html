@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeQuest Pro - Student Access</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+</head>
+
+<body>
+
+    <!-- STUDENT LOGIN / SIGNUP PORTAL -->
+    <div class="container">
+        <div class="row align-items-center justify-content-center" style="min-height: 100vh;">
+            <div class="col-md-6 col-lg-5 animate-fade-in">
+
+                <div class="glass-panel p-5 text-center">
+                    <i class="fa-solid fa-gamepad mb-3" style="font-size: 3.5rem; color: var(--brand-primary);"></i>
+                    <h1 class="font-brand fw-bold mb-1">Code<span class="text-gradient">Quest</span> Pro</h1>
+                    <p class="text-muted mb-5">Version 3.0 • Student Portal</p>
+
+                    <!-- LOGIN FORM -->
+                    <form id="loginForm" class="mb-4">
+                        <input type="email" class="form-control form-stitch mb-3" id="logEmail"
+                            placeholder="Email Address" required>
+                        <input type="password" class="form-control form-stitch mb-4" id="logPassword"
+                            placeholder="Password" required>
+                        <button type="submit" class="btn-stitch w-100" id="btnSignIn"><i
+                                class="fa-solid fa-right-to-bracket me-2"></i> Log In</button>
+
+                        <div class="mt-4">
+                            <span class="text-muted small">New cadet?</span>
+                            <a href="javascript:void(0)" onclick="toggleForm('signup')"
+                                class="text-primary fw-bold text-decoration-none ms-1">Create Account</a>
+                        </div>
+                    </form>
+
+                    <!-- SIGNUP FORM (Hidden by default) -->
+                    <form id="signupForm" class="mb-4" style="display: none;">
+                        <input type="text" class="form-control form-stitch mb-3" id="regUsername"
+                            placeholder="Player Tag (e.g. CyberNinja)" required>
+                        <input type="email" class="form-control form-stitch mb-3" id="regEmail"
+                            placeholder="Email Address" required>
+                        <input type="password" class="form-control form-stitch mb-4" id="regPassword"
+                            placeholder="Create Password" required>
+                        <button type="submit" class="btn-stitch w-100" id="btnSignUp"
+                            style="background: linear-gradient(135deg, var(--brand-secondary), var(--brand-primary));"><i
+                                class="fa-solid fa-user-plus me-2"></i> Register Account</button>
+
+                        <div class="mt-4">
+                            <span class="text-muted small">Already have rank?</span>
+                            <a href="javascript:void(0)" onclick="toggleForm('login')"
+                                class="text-primary fw-bold text-decoration-none ms-1">Log In</a>
+                        </div>
+                    </form>
+
+                    <div id="authMsg" class="fw-bold fs-6 mt-3"></div>
+
+                    <div class="mt-4 pt-4 border-top border-secondary text-center">
+                        <a href="admin_login.html" class="text-muted small text-decoration-none px-3 py-2"
+                            style="background: rgba(0,0,0,0.2); border-radius: 8px;"><i
+                                class="fa-solid fa-shield-halved me-1 text-danger"></i> Access Admin Gateway</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const msg = document.getElementById('authMsg');
+
+        // Form Toggler
+        function toggleForm(type) {
+            msg.textContent = "";
+            if (type === 'signup') {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('signupForm').style.display = 'block';
+            } else {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('signupForm').style.display = 'none';
+            }
+        }
+
+        // Login Submit
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSignIn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Connecting...'; btn.disabled = true;
+
+            const em = document.getElementById('logEmail').value;
+            const pw = document.getElementById('logPassword').value;
+
+            const { error } = await window.supabase.auth.signInWithPassword({ email: em, password: pw });
+            if (error) {
+                msg.textContent = "Error: " + error.message; msg.className = "text-danger mt-3";
+                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket me-2"></i> Log In'; btn.disabled = false;
+            } else {
+                msg.textContent = "Auth successful. Booting routing kernel..."; msg.className = "text-success mt-3";
+            }
+        });
+
+        // Signup Submit
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSignUp');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Registering...'; btn.disabled = true;
+
+            const em = document.getElementById('regEmail').value;
+            const pw = document.getElementById('regPassword').value;
+            const un = document.getElementById('regUsername').value;
+
+            // Strict Supabase signUp payload
+            const { data, error } = await window.supabase.auth.signUp({
+                email: em,
+                password: pw,
+                options: { data: { username: un } }
+            });
+
+            if (error) {
+                msg.textContent = "Error: " + error.message; msg.className = "text-danger mt-3";
+                btn.innerHTML = '<i class="fa-solid fa-user-plus me-2"></i> Register Account'; btn.disabled = false;
+            } else {
+                // If Supabase requires email verification, session will be null.
+                if (data.session === null) {
+                    msg.innerHTML = "Registration logged! <br><span class='text-warning small'>But your Supabase requires Email Confirmation! Check your inbox or turn it off in Supabase settings.</span>";
+                    msg.className = "text-success mt-3";
+                    btn.innerHTML = '<i class="fa-solid fa-user-plus me-2"></i> Register Account'; btn.disabled = false;
+                } else {
+                    msg.textContent = "Registered perfectly! Connecting..."; msg.className = "text-success mt-3";
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

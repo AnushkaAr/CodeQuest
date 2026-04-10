@@ -1,0 +1,97 @@
+/* CodeQuest Pro Final - Stitched Professional Styling */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+    --bg-dark: #0a0c10;
+    --bg-panel: rgba(22, 27, 34, 0.7);
+    --bg-panel-hover: rgba(30, 36, 45, 0.85);
+    
+    --brand-primary: #6366f1; /* Indigo */
+    --brand-secondary: #06b6d4; /* Cyan */
+    --brand-accent: #f43f5e; /* Rose */
+    
+    --text-main: #f8fafc; /* Brilliant white-gray for main text */
+    --text-muted: #cbd5e1; /* HIGH CONTRAST MUTED: Light Slate */
+    
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    background-image: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 30%),
+                      radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.08), transparent 30%);
+}
+
+.font-brand { font-family: 'Space Grotesk', sans-serif; }
+
+/* Force Bootstrap text-muted override for high dark-mode contrast */
+.text-muted {
+    color: var(--text-muted) !important;
+    font-weight: 400;
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+    background: var(--bg-panel);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    transition: all 0.3s ease;
+}
+.glass-panel:hover { background: var(--bg-panel-hover); border-color: rgba(255,255,255,0.15); }
+
+/* Buttons */
+.btn-stitch {
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+    border: none; color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 600; cursor: pointer;
+    transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+.btn-stitch:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5); color: white; }
+.btn-outline-stitch {
+    background: transparent;
+    border: 1px solid var(--brand-primary);
+    color: var(--brand-primary); padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+}
+.btn-outline-stitch:hover { background: rgba(99, 102, 241, 0.1); color: white; }
+
+/* Forms */
+.form-stitch {
+    background: rgba(0,0,0,0.3) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: white !important;
+    padding: 14px; border-radius: 10px;
+}
+.form-stitch:focus { border-color: var(--brand-primary) !important; box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.2) !important; }
+
+/* Fix unreadable dark placeholders on black inputs */
+.form-stitch::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Navbar */
+.navbar-stitch {
+    background: rgba(10, 12, 16, 0.8) !important;
+    backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border);
+}
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.5s ease forwards; }
