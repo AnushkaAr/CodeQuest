@@ -9,39 +9,47 @@
     <link rel="stylesheet" href="../style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../supabaseClient.js"></script>
-    <style>
-        .fallback-fullscreen {
-            position: fixed !important;
-            top: 0 !important; left: 0 !important;
-            width: 100vw !important; height: 100vh !important;
-            z-index: 9000 !important;
-            margin: 0 !important;
-            background: #0a0c10 !important;
-        }
-    </style>
 </head>
 <body class="bg-dark">
 
-    <!-- FULLSCREEN GATE OVERLAY -->
-    <div id="fullscreenGate" class="d-flex flex-column align-items-center justify-content-center" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0a0c10; z-index: 9999;">
+    <!-- ANTI-CHEAT WARNING MODAL -->
+    <div class="modal fade" id="cheatModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-panel border-danger" style="background: rgba(20, 0, 0, 0.9);">
+                <div class="modal-body text-center p-5">
+                    <i class="fa-solid fa-triangle-exclamation text-danger mb-4" style="font-size: 5rem;"></i>
+                    <h2 class="text-white font-brand fw-bold mb-3">WARNING: ANTI-CHEAT</h2>
+                    <p class="text-muted fs-5 mb-4">You lost focus or switched tabs. Session violation recorded.</p>
+                    <div class="alert alert-danger fw-bold border-danger mb-4">
+                        <i class="fa-solid fa-skull me-2"></i> STRIKE 1 of 2. One more violation ends the session.
+                    </div>
+                    <button type="button" class="btn btn-danger w-100 py-3 fw-bold" id="btnResumeProctoring">Resume Test</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 1: GATE - Initiate Test -->
+    <div id="gateScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0a0c10; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <i class="fa-solid fa-expand mb-4 text-primary" style="font-size: 5rem;"></i>
         <h1 class="font-brand text-white fw-bold mb-3">Fullscreen Required</h1>
-        <p class="text-muted fs-5 mb-5 text-center" style="max-width: 600px;">To ensure test integrity, this level must be completed in true fullscreen mode. Exiting fullscreen or switching tabs will trigger the anti-cheat system.</p>
-        <button id="btnEnterFullscreen" class="btn-stitch px-5 py-3 fs-4" type="button" onclick="window.startProctoring()"><i class="fa-solid fa-power-off me-2"></i> Initiate Proctoring</button>
-        <p id="fullscreenStatus" class="text-white-50 small mt-3">Click the button to begin the test.</p>
+        <p class="text-muted fs-5 mb-5 text-center" style="max-width: 600px;">To ensure test integrity, this level must be completed in fullscreen mode. Exiting fullscreen or switching tabs will trigger the anti-cheat system.</p>
+        <button id="btnStart" class="btn-stitch px-5 py-3 fs-4" type="button"><i class="fa-solid fa-power-off me-2"></i> Initiate Proctoring</button>
+        <p id="gateStatus" class="text-white-50 small mt-3">Click to begin your test.</p>
     </div>
 
-    <!-- COUNTDOWN OVERLAY (Shown during initialization) -->
-    <div id="countdownOverlay" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 12, 16, 0.95); z-index: 9998; flex-direction: column; align-items: center; justify-content: center;">
-        <p class="text-muted mb-4" style="font-size: 1.25rem;">Test starting in:</p>
-        <p class="text-primary fw-bold" style="font-size: 5rem; margin: 0;" id="countdownDisplay">3</p>
+    <!-- SCREEN 2: COUNTDOWN - 3 Second Timer -->
+    <div id="countdownScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 12, 16, 0.98); z-index: 8999; flex-direction: column; align-items: center; justify-content: center;">
+        <p class="text-muted mb-4" style="font-size: 1.5rem;">Test will start in:</p>
+        <p id="countdownNum" style="font-size: 8rem; font-weight: 700; color: #3b82f6; margin: 0; font-family: monospace;">3</p>
+        <p class="text-muted mt-4">Preparing your environment...</p>
     </div>
 
-    <!-- MAIN UI (Hidden behind gate initially) -->
-    <div id="mainInterface" style="display: none; flex-direction: column; min-height: 100vh;">
+    <!-- SCREEN 3: TEST - Main Test Interface -->
+    <div id="testScreen" style="display: none; flex-direction: column; min-height: 100vh;">
         <nav class="navbar-stitch py-3">
             <div class="container-fluid px-5 d-flex align-items-center">
-                <button onclick="safeExit()" class="btn btn-outline-secondary font-brand fs-5">
+                <button onclick="exitTest()" class="btn btn-outline-secondary font-brand fs-5">
                     <i class="fa-solid fa-arrow-left me-2"></i> Dashboard
                 </button>
                 <div class="ms-auto d-flex align-items-center gap-4">
@@ -53,55 +61,35 @@
             </div>
         </nav>
 
-        <div class="container-fluid px-5 py-4 animate-fade-in flex-grow-1 d-flex flex-column">
+        <div class="container-fluid px-5 py-4 flex-grow-1 d-flex flex-column">
             <div class="glass-panel p-5 border-primary flex-grow-1 d-flex flex-column">
                 
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-primary bg-opacity-25 text-primary border border-primary font-monospace py-2 px-3 fs-6" id="lvlBadge">Loading...</span>
-                        <span id="lvlTypeBadge" class="badge bg-secondary bg-opacity-25 text-white border border-secondary font-monospace py-2 px-3 fs-6">TYPE</span>
+                        <span id="lvlTypeBadge" class="badge bg-secondary bg-opacity-25 text-white border border-secondary font-monospace py-2 px-3 fs-6">--</span>
                     </div>
-                    <span class="text-warning fw-bold fs-5" id="lvlBounty">XP</span>
+                    <span class="text-warning fw-bold fs-5" id="lvlBounty">-- XP</span>
                 </div>
 
                 <h1 class="font-brand display-4 fw-bold mb-4 text-white" id="lvlTitle">Linking to server...</h1>
                 <p class="text-muted fs-4 mb-5 border-bottom border-secondary pb-4" id="lvlDesc">Awaiting intelligence download from the database.</p>
 
-                <div class="p-5 bg-dark rounded border border-secondary mb-5 position-relative flex-grow-1" style="font-family: monospace; white-space: pre-wrap; font-size: 1.4rem; color: #a5b4fc;" id="lvlQuestion">
-                    ... 
-                </div>
+                <div class="p-5 bg-dark rounded border border-secondary mb-5 flex-grow-1 position-relative" style="font-family: monospace; white-space: pre-wrap; font-size: 1.4rem; color: #a5b4fc; overflow: auto;" id="lvlQuestion">...</div>
+
                 <div id="theoryComponent" class="alert alert-secondary border-secondary text-white d-none mt-3">
-                    <strong>Theory Level:</strong> Provide a complete written explanation below. Use the exact expected answer phrase when possible.
+                    <strong>Theory Level:</strong> Provide a complete written explanation below.
                 </div>
 
-                <div class="mb-4 mt-auto">
+                <div class="mb-4">
                     <label class="text-muted small mb-2 text-uppercase fw-bold tracking-widest fs-6" id="answerLabel">Execute Script / Inject Output</label>
                     <textarea id="userAnswer" class="form-control form-stitch fs-4 py-3" rows="3" placeholder="> Enter strictly formatted response here" autocomplete="off"></textarea>
                     <p id="theoryHelper" class="text-muted small mt-2">Answer must match the expected output exactly.</p>
                 </div>
 
                 <div class="d-flex align-items-center mt-3">
-                    <button id="verifyBtn" class="btn-stitch px-5 py-4 fs-4"><i class="fa-solid fa-terminal me-2"></i> Compile & Submit</button>
-                    <div id="feedbackMsg" class="ms-4 fw-bold fs-4"></div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- ANTI-CHEAT MODAL (STRIKE 1) -->
-    <div class="modal fade" id="cheatModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content glass-panel border-danger" style="background: rgba(20, 0, 0, 0.9);">
-                <div class="modal-body text-center p-5">
-                    <i class="fa-solid fa-triangle-exclamation text-danger mb-4" style="font-size: 5rem;"></i>
-                    <h2 class="text-white font-brand fw-bold mb-3">WARNING: STRICT PROCTORING</h2>
-                    <p class="text-muted fs-5 mb-4">You exited fullscreen or lost focus on the window. This is a severe anti-cheat violation.</p>
-                    <div class="alert alert-danger fw-bold border-danger mb-4 text-start">
-                        <i class="fa-solid fa-skull me-2"></i> STRIKE 1 LOGGED.
-                        <br>If you violate the parameters again, your session will be instantly terminated.
-                    </div>
-                    <button type="button" class="btn btn-danger w-100 py-3 fw-bold" id="btnResumeProctoring">I Understand, Resume Proctoring</button>
+                    <button id="submitBtn" class="btn-stitch px-5 py-4 fs-4"><i class="fa-solid fa-terminal me-2"></i> Compile & Submit</button>
+                    <div id="feedback" class="ms-4 fw-bold fs-4"></div>
                 </div>
             </div>
         </div>
@@ -110,275 +98,275 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../app.js"></script>
     <script>
-        let curLvl = null;
-        let strikes = 0;
-        let cheatModalObj = null;
-        let isProctoringActive = false;
-        let isCleared = false; 
-        let countdownInterval = null;
+        // ============================================================
+        // CODEQUEST TEST SYSTEM - CLEAN, PROFESSIONAL IMPLEMENTATION
+        // ============================================================
 
-        async function safeExit() {
-            isCleared = true; 
-            if (document.fullscreenElement) {
-                await document.exitFullscreen();
-            }
-            window.location.replace('../dashboard.html');
-        }
+        let testState = {
+            active: false,
+            violations: 0,
+            level: null,
+            maxViolations: 2
+        };
 
-        async function startCountdown(seconds) {
-            return new Promise((resolve) => {
-                const timer = document.getElementById('countdownTimer');
-                const display = document.getElementById('countdownDisplay');
-                
-                if (!timer || !display) {
-                    console.warn('Countdown timer elements not found, skipping timer');
-                    setTimeout(() => resolve(), seconds * 1000);
-                    return;
+        console.log('🎮 CodeQuest Test Engine Initialized');
+
+        // ==================== PHASE 1: INITIATE ====================
+
+        document.getElementById('btnStart').addEventListener('click', async () => {
+            console.log('✓ START button clicked');
+            await initializeTest();
+        });
+
+        async function initializeTest() {
+            const gate = document.getElementById('gateStatus');
+            gate.innerText = 'Preparing test environment...';
+
+            // Try to activate fullscreen
+            try {
+                const req = 
+                    document.documentElement.requestFullscreen ||
+                    document.documentElement.webkitRequestFullscreen ||
+                    document.documentElement.mozRequestFullScreen ||
+                    document.documentElement.msRequestFullscreen;
+
+                if (req) {
+                    await req.call(document.documentElement);
+                    console.log('✅ Fullscreen mode activated');
                 }
-                
-                if (timer) timer.style.display = 'block';
-                
-                let remaining = seconds;
-                if (display) display.innerText = remaining;
+            } catch (e) {
+                console.log('ℹ Fullscreen unavailable, continuing in window mode');
+            }
 
-                countdownInterval = setInterval(() => {
-                    remaining--;
-                    if (display) display.innerText = remaining;
-                    console.log('Countdown:', remaining);
-                    
-                    if (remaining <= 0) {
-                        clearInterval(countdownInterval);
-                        countdownInterval = null;
-                        if (timer) timer.style.display = 'none';
-                        console.log('Countdown complete');
-                        resolve();
-                    }
-                }, 1000);
-            });
+            // Transition: Gate → Countdown
+            document.getElementById('gateScreen').style.display = 'none';
+            document.getElementById('countdownScreen').style.display = 'flex';
+
+            // Run 3-second countdown
+            await runCountdown(3);
+
+            // Transition: Countdown → Test
+            document.getElementById('countdownScreen').style.display = 'none';
+            document.getElementById('testScreen').style.display = 'flex';
+            testState.active = true;
+
+            console.log('✅✅✅ TEST STARTED');
+
+            // Load the level
+            await loadLevel();
+
+            // Activate anti-cheat monitoring
+            activateAntiCheat();
         }
 
-        async function startProctoring() {
-            console.log('>>> startProctoring() called');
-            const gate = document.getElementById('fullscreenGate');
-            const mainInterface = document.getElementById('mainInterface');
-            const statusEl = document.getElementById('fullscreenStatus');
-            const btn = document.getElementById('btnEnterFullscreen');
-            
-            if (!gate || !mainInterface) {
-                console.error('❌ Proctoring UI elements not found');
-                alert('Error: Proctoring interface not found. Please refresh the page.');
-                return;
+        // ==================== PHASE 2: COUNTDOWN ====================
+
+        async function runCountdown(seconds) {
+            const numEl = document.getElementById('countdownNum');
+            let current = seconds;
+            numEl.innerText = current;
+
+            for (let i = 0; i < seconds; i++) {
+                await new Promise(r => setTimeout(r, 1000));
+                current--;
+                numEl.innerText = current;
             }
+        }
 
-            if (btn) {
-                btn.disabled = true;
-                btn.style.opacity = '0.6';
-            }
-            
-            if (statusEl) statusEl.innerText = 'Requesting fullscreen...';
-            console.log('Status: Requesting fullscreen');
+        // ==================== PHASE 3: LOAD LEVEL ====================
 
-            const requestFullscreen = 
-                document.documentElement.requestFullscreen ||
-                document.documentElement.webkitRequestFullscreen ||
-                document.documentElement.mozRequestFullScreen ||
-                document.documentElement.msRequestFullscreen;
+        async function loadLevel() {
+            const id = new URLSearchParams(window.location.search).get('id');
 
-            if (!requestFullscreen) {
-                console.warn('⚠ Fullscreen API not supported');
-                if (statusEl) statusEl.innerText = 'Browser fullscreen not supported. Starting in fallback mode.';
-                
-                mainInterface.classList.add('fallback-fullscreen');
-                mainInterface.style.position = 'fixed';
-                mainInterface.style.top = '0';
-                mainInterface.style.left = '0';
-                mainInterface.style.width = '100vw';
-                mainInterface.style.height = '100vh';
-                mainInterface.style.zIndex = '9999';
-                
-                gate.style.display = 'none';
-                mainInterface.style.display = 'flex';
-                
-                console.log('Starting countdown...');
-                await startCountdown(3);
-                isProctoringActive = true;
-                console.log('✅ Proctoring started (fallback - no API support)');
+            if (!id) {
+                document.getElementById('lvlTitle').innerText = 'ERROR: No Level ID';
                 return;
             }
 
             try {
-                console.log('Attempting fullscreen...');
-                await requestFullscreen.call(document.documentElement);
-                console.log('✅ Fullscreen activated');
-                if (statusEl) statusEl.innerText = 'Fullscreen activated. Preparing test...';
-                
-                gate.style.display = 'none';
-                mainInterface.style.display = 'flex';
-                
-                console.log('Starting countdown...');
-                await startCountdown(3);
-                isProctoringActive = true;
-                console.log('✅ Proctoring started (fullscreen)');
+                const { data } = await supabase
+                    .from('levels')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (!data) throw new Error('Level not found');
+
+                testState.level = data;
+                console.log('✅ Level loaded:', data.title);
+
+                // Update UI with level data
+                document.getElementById('lvlBadge').innerText = `SECTOR LEVEL ${data.level_number}`;
+                document.getElementById('lvlBounty').innerText = `+${data.xp_reward} XP`;
+                document.getElementById('lvlTitle').innerText = data.title;
+                document.getElementById('lvlDesc').innerText = data.description;
+                document.getElementById('lvlQuestion').innerText = data.question;
+
+                // Handle theory vs code questions
+                const isTheory = (data.question_type || 'code').toLowerCase() === 'theory';
+                configureAnswerMode(isTheory);
+
             } catch (err) {
-                console.error('❌ Fullscreen request failed:', err.message || err);
-                if (statusEl) {
-                    statusEl.innerText = 'Fullscreen blocked. Using fallback mode to continue.';
-                    statusEl.style.color = '#ff6b6b';
-                }
-                
-                // CSS fallback
-                mainInterface.classList.add('fallback-fullscreen');
-                mainInterface.style.position = 'fixed';
-                mainInterface.style.top = '0';
-                mainInterface.style.left = '0';
-                mainInterface.style.width = '100vw';
-                mainInterface.style.height = '100vh';
-                mainInterface.style.zIndex = '9999';
-                
-                gate.style.display = 'none';
-                mainInterface.style.display = 'flex';
-                
-                console.log('Starting countdown...');
-                await startCountdown(3);
-                isProctoringActive = true;
-                console.log('✅ Proctoring started (fallback - after rejection)');
+                console.error('❌ Error loading level:', err);
+                document.getElementById('lvlTitle').innerText = 'ERROR: Could not load level';
             }
         }
 
-        // Make globally accessible
-        window.startProctoring = startProctoring;
-        console.debug('startProctoring registered globally');
+        function configureAnswerMode(isTheory) {
+            const ansArea = document.getElementById('userAnswer');
+            const ansLabel = document.getElementById('answerLabel');
+            const theoryDiv = document.getElementById('theoryComponent');
+            const theoryHelper = document.getElementById('theoryHelper');
+            const typeBadge = document.getElementById('lvlTypeBadge');
 
-        // Track fullscreen state changes
-        document.addEventListener('fullscreenchange', () => {
-            console.log('Fullscreen state changed. Element:', document.fullscreenElement ? 'Active' : 'Inactive');
-        });
+            if (isTheory) {
+                ansArea.rows = 6;
+                ansArea.placeholder = 'Write your theory response here...';
+                ansLabel.innerText = 'Theory Response / Explanation';
+                theoryDiv.classList.remove('d-none');
+                theoryHelper.innerText = 'Theory questions require a written answer, comparison is exact and case-insensitive.';
+                typeBadge.innerText = 'THEORY';
+                typeBadge.className = 'badge bg-info bg-opacity-20 text-info border border-info font-monospace py-2 px-3 fs-6';
+            } else {
+                ansArea.rows = 3;
+                ansArea.placeholder = '> Enter strictly formatted response here';
+                ansLabel.innerText = 'Execute Script / Inject Output';
+                theoryDiv.classList.add('d-none');
+                theoryHelper.innerText = 'Answer should match the expected output exactly.';
+                typeBadge.innerText = 'CODE';
+                typeBadge.className = 'badge bg-secondary bg-opacity-25 text-white border border-secondary font-monospace py-2 px-3 fs-6';
+            }
+        }
 
-        document.addEventListener('fullscreenerror', (event) => {
-            console.error('Fullscreen error event:', event);
-        });
+        // ==================== PHASE 4: ANTI-CHEAT SYSTEM ====================
 
-        document.addEventListener('DOMContentLoaded', () => { 
-            cheatModalObj = new bootstrap.Modal(document.getElementById('cheatModal'));
+        function activateAntiCheat() {
+            let modalObj = null;
 
-            const triggerCheatStrike = async () => {
-                if(!isProctoringActive || isCleared) return;
-                
-                strikes++;
-                if (strikes === 1) {
-                    cheatModalObj.show();
-                } else if (strikes >= 2) {
-                    cheatModalObj.hide();
-                    document.body.innerHTML = `
-                        <div class="d-flex w-100 h-100 align-items-center justify-content-center text-center" style="background: #110000; min-height: 100vh;">
-                            <div class="text-danger">
-                                <i class="fa-solid fa-ban mb-4" style="font-size: 6rem;"></i>
-                                <h1 class="fw-bold font-brand text-danger">SESSION TERMINATED</h1>
-                                <p class="text-white fs-4">Anti-Cheat Proctoring detected multiple focus losses.</p>
-                                <p class="text-muted">Logging out safely...</p>
-                            </div>
-                        </div>`;
-                    
-                    if(document.fullscreenElement) await document.exitFullscreen();
-                    if(window.supabase) await window.supabase.auth.signOut();
-                    setTimeout(() => window.location.replace('../index.html'), 2000);
+            const modal = document.getElementById('cheatModal');
+            if (modal) {
+                modalObj = new bootstrap.Modal(modal);
+            }
+
+            // Monitor tab switches
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && testState.active) {
+                    recordViolation('tab_switch', modalObj);
                 }
-            };
-
-            // Proctor Blurs
-            window.addEventListener('blur', () => triggerCheatStrike());
-            
-
-            document.getElementById('btnResumeProctoring').addEventListener('click', async () => {
-                cheatModalObj.hide();
-                try {
-                    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-                        await document.documentElement.requestFullscreen();
-                    }
-                } catch(err) { }
             });
 
-            // Fetch Intelligence Data
-            setTimeout(async () => {
-                const id = new URLSearchParams(window.location.search).get('id');
-                if(!id) return document.getElementById('lvlTitle').innerText = "FATAL ERROR: NO LEVEL ID DETECTED.";
-                
-                const { data } = await supabase.from('levels').select('*').eq('id', id).single();
-                if(data) {
-                    curLvl = data;
-                    const qType = (data.question_type || 'code').toLowerCase();
-                    const isTheory = qType === 'theory';
-                    const answerLabel = document.getElementById('answerLabel');
-                    const answerInput = document.getElementById('userAnswer');
-                    const theoryComponent = document.getElementById('theoryComponent');
-                    const theoryHelper = document.getElementById('theoryHelper');
-
-                    document.getElementById('lvlBadge').innerText = `SECTOR LEVEL ${data.level_number}`;
-                    document.getElementById('lvlBounty').innerText = `+${data.xp_reward} XP`;
-                    document.getElementById('lvlTitle').innerText = data.title;
-                    document.getElementById('lvlDesc').innerText = data.description;
-                    document.getElementById('lvlQuestion').innerText = data.question;
-
-                    answerLabel.innerText = isTheory ? 'Theory Response / Explanation' : 'Execute Script / Inject Output';
-                    answerInput.placeholder = isTheory ? 'Write your theory response here...' : '> Enter strictly formatted response here';
-                    answerInput.rows = isTheory ? 6 : 3;
-                    answerInput.value = '';
-                    theoryComponent.style.display = isTheory ? 'block' : 'none';
-                    theoryHelper.innerText = isTheory ? 'Theory questions require a written answer, but the comparison is still exact and case-insensitive.' : 'Answer should match the expected output exactly.';
-                    const typeBadge = document.getElementById('lvlTypeBadge');
-                    typeBadge.innerText = isTheory ? 'THEORY' : 'CODE';
-                    typeBadge.className = isTheory ? 'badge bg-info bg-opacity-20 text-info border border-info font-monospace py-2 px-3 fs-6' : 'badge bg-secondary bg-opacity-25 text-white border border-secondary font-monospace py-2 px-3 fs-6';
+            // Monitor window blur (focus loss)
+            window.addEventListener('blur', () => {
+                if (testState.active) {
+                    recordViolation('window_blur', modalObj);
                 }
-            }, 800);
-        });
+            });
 
-        // Evaluation Runtime
-        document.getElementById('verifyBtn').addEventListener('click', async () => {
-            if(!curLvl) return;
-            const ans = document.getElementById('userAnswer').value.trim();
-            const msg = document.getElementById('feedbackMsg');
-            const btn = document.getElementById('verifyBtn');
-            
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Processing...';
-            btn.disabled = true;
+            // Resume button handler
+            const resumeBtn = document.getElementById('btnResumeProctoring');
+            if (resumeBtn && modalObj) {
+                resumeBtn.addEventListener('click', () => {
+                    modalObj.hide();
+                    console.log('✓ Test resumed');
+                });
+            }
+        }
 
-            if(ans.toLowerCase() === curLvl.expected_answer.toLowerCase()) {
-                const p = window.App.profile;
-                const isReplay = p && p.current_level > curLvl.level_number;
+        function recordViolation(type, modal) {
+            testState.violations++;
+            console.warn(`⚠️  VIOLATION #${testState.violations}: ${type}`);
 
-                if (!isReplay) {
-                    msg.className = "ms-4 fw-bold fs-4 text-success animate-fade-in";
-                    msg.innerHTML = `<i class="fa-solid fa-check-circle me-1"></i> First Clear! +${curLvl.xp_reward} XP. Booting next...`;
-                    
-                    await window.App.updateScore(curLvl.xp_reward);
-                    await supabase.from('profiles').update({current_level: curLvl.level_number + 1}).eq('id', p.id);
-                    window.App.profile.current_level = curLvl.level_number + 1;
-                } else {
-                    msg.className = "ms-4 fw-bold fs-4 text-info animate-fade-in";
-                    msg.innerHTML = `<i class="fa-solid fa-rotate-right me-1"></i> Replay Complete! (No XP). Booting next...`;
-                }
+            if (testState.violations === 1) {
+                console.warn('🔴 STRIKE 1 - One more violation ends the session');
+                if (modal) modal.show();
+            } else if (testState.violations >= testState.maxViolations) {
+                console.error('🚫 SESSION TERMINATED');
+                testState.active = false;
 
-                isCleared = true; // Immunity granted
+                // Terminate session
+                document.body.innerHTML = `
+                    <div style="display:flex;width:100%;height:100vh;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#0a0c10;">
+                        <i class="fa-solid fa-ban" style="font-size:6rem;color:#dc2626;margin-bottom:2rem;"></i>
+                        <h1 style="color:white;font-size:2.5rem;font-weight:700;margin-bottom:1rem;">SESSION TERMINATED</h1>
+                        <p style="color:#9ca3af;font-size:1.125rem;">Multiple anti-cheat violations detected.</p>
+                        <p style="color:#6b7280;margin-top:1rem;">Returning to dashboard...</p>
+                    </div>`;
 
-                const { data: nextLvl } = await supabase.from('levels').select('id').eq('level_number', curLvl.level_number + 1).single();
-                
                 setTimeout(async () => {
-                    if(nextLvl) { 
-                        window.location.replace('level.html?id=' + nextLvl.id); 
-                    } else { 
-                        if (document.fullscreenElement) await document.exitFullscreen();
-                        msg.innerHTML = `<i class="fa-solid fa-trophy me-1"></i> Full Campaign Complete! Retracting...`;
-                        setTimeout(() => window.location.replace('../dashboard.html'), 1000);
+                    if (document.fullscreenElement) await document.exitFullscreen();
+                    window.location.replace('../dashboard.html');
+                }, 2500);
+            }
+        }
+
+        // ==================== PHASE 5: SUBMIT ANSWER ====================
+
+        document.getElementById('submitBtn').addEventListener('click', async () => {
+            if (!testState.level) return;
+
+            const userAnswer = document.getElementById('userAnswer').value.trim();
+            const feedback = document.getElementById('feedback');
+            const btn = document.getElementById('submitBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Checking...';
+
+            if (userAnswer.toLowerCase() === testState.level.expected_answer.toLowerCase()) {
+                // CORRECT
+                feedback.className = 'ms-4 fw-bold fs-4 text-success';
+                feedback.innerHTML = `<i class="fa-solid fa-check-circle me-1"></i> Correct! +${testState.level.xp_reward} XP`;
+
+                // Update profile
+                const profile = window.App?.profile;
+                if (profile && profile.current_level <= testState.level.level_number) {
+                    await window.App.updateScore(testState.level.xp_reward);
+                    await supabase.from('profiles')
+                        .update({ current_level: testState.level.level_number + 1 })
+                        .eq('id', profile.id);
+                }
+
+                setTimeout(async () => {
+                    testState.active = false;
+
+                    // Check for next level
+                    const { data: nextLevel } = await supabase.from('levels')
+                        .select('id')
+                        .eq('level_number', testState.level.level_number + 1)
+                        .single();
+
+                    if (nextLevel) {
+                        window.location.replace('level.html?id=' + nextLevel.id);
+                    } else {
+                        // Campaign complete
+                        feedback.innerHTML = '<i class="fa-solid fa-trophy me-1"></i> Campaign Complete!';
+                        setTimeout(async () => {
+                            if (document.fullscreenElement) await document.exitFullscreen();
+                            window.location.replace('../dashboard.html');
+                        }, 1500);
                     }
                 }, 1500);
-
             } else {
-                msg.className = "ms-4 fw-bold fs-4 text-danger animate-fade-in";
-                msg.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Segmentation Fault. Output incorrect.';
-                btn.innerHTML = '<i class="fa-solid fa-terminal me-2"></i> Compile & Submit';
+                // INCORRECT
+                feedback.className = 'ms-4 fw-bold fs-4 text-danger';
+                feedback.innerHTML = '<i class="fa-solid fa-xmark-circle me-1"></i> Incorrect. Try again.';
                 btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-terminal me-2"></i> Compile & Submit';
             }
         });
+
+        // ==================== EXIT TEST ====================
+
+        async function exitTest() {
+            if (confirm('End test and return to dashboard?')) {
+                testState.active = false;
+                if (document.fullscreenElement) {
+                    await document.exitFullscreen();
+                }
+                window.location.replace('../dashboard.html');
+            }
+        }
+
+        console.log('✅ System Ready - Click "Initiate Proctoring" to begin');
     </script>
 </body>
 </html>
