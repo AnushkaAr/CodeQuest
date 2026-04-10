@@ -119,7 +119,7 @@
 
             if (theoryLevels.length > 0) {
                 const availableTheory = theoryLevels.find(l => l.level_number <= uLvl) || theoryLevels[0];
-                const isTheoryLocked = availableTheory.level_number > uLvl;
+                const isTheoryLocked = uLvl < 6; // Unlock theory after completing level 5
                 const targetId = availableTheory.id;
 
                 if (!isTheoryLocked) {
@@ -134,8 +134,8 @@
                     theoryCardButton.style.opacity = '0.6';
                     theoryCardButton.style.pointerEvents = 'none';
                     theoryCardButton.href = 'javascript:void(0)';
-                    theoryCardButton.innerText = `Locked until level ${availableTheory.level_number}`;
-                    theoryCardText.innerText = `A theory challenge is ready, but you must reach level ${availableTheory.level_number} to unlock it.`;
+                    theoryCardButton.innerText = 'Locked until level 6';
+                    theoryCardText.innerText = 'Complete level 5 to unlock theory challenges and expand your knowledge base.';
                 }
             } else {
                 theoryCardButton.className = 'btn btn-outline-secondary w-100 mt-auto disabled';

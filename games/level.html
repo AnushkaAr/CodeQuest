@@ -29,6 +29,30 @@
         </div>
     </div>
 
+    <!-- NEXT QUESTION CHOICE MODAL -->
+    <div class="modal fade" id="nextQuestionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-panel border-success" style="background: rgba(0, 50, 20, 0.9);">
+                <div class="modal-body text-center p-5">
+                    <i class="fa-solid fa-circle-check text-success mb-4" style="font-size: 5rem;"></i>
+                    <h2 class="text-white font-brand fw-bold mb-3">Question Solved!</h2>
+                    <p id="rewardText" class="text-success fs-5 mb-4">+100 XP Earned</p>
+                    <p class="text-muted fs-6 mb-5">You've successfully completed this challenge.</p>
+                    <div class="d-grid gap-3">
+                        <button type="button" class="btn btn-success py-3 fw-bold fs-5" id="btnNextQuestion">
+                            <i class="fa-solid fa-arrow-right me-2"></i> Next Question
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary py-3 fw-bold fs-5" id="btnBackDashboard">
+                            <i class="fa-solid fa-arrow-left me-2"></i> Back to Dashboard
+                        </button>
+                    </div>
+                    <p class="text-muted small mt-4">or continue to the next challenge</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- SCREEN 1: GATE - Initiate Test -->
     <div id="gateScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0a0c10; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <i class="fa-solid fa-expand mb-4 text-primary" style="font-size: 5rem;"></i>
@@ -301,6 +325,8 @@
 
         // ==================== PHASE 5: SUBMIT ANSWER ====================
 
+        let nextLevelId = null;
+
         document.getElementById('submitBtn').addEventListener('click', async () => {
             if (!testState.level) return;
 
@@ -312,7 +338,7 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Checking...';
 
             if (userAnswer.toLowerCase() === testState.level.expected_answer.toLowerCase()) {
-                // CORRECT
+                // CORRECT ANSWER
                 feedback.className = 'ms-4 fw-bold fs-4 text-success';
                 feedback.innerHTML = `<i class="fa-solid fa-check-circle me-1"></i> Correct! +${testState.level.xp_reward} XP`;
 
@@ -325,33 +351,63 @@
                         .eq('id', profile.id);
                 }
 
-                setTimeout(async () => {
-                    testState.active = false;
+                // Check for next level
+                const { data: nextLevel } = await supabase.from('levels')
+                    .select('id')
+                    .eq('level_number', testState.level.level_number + 1)
+                    .single();
 
-                    // Check for next level
-                    const { data: nextLevel } = await supabase.from('levels')
-                        .select('id')
-                        .eq('level_number', testState.level.level_number + 1)
-                        .single();
+                nextLevelId = nextLevel?.id || null;
 
-                    if (nextLevel) {
-                        window.location.replace('level.html?id=' + nextLevel.id);
-                    } else {
-                        // Campaign complete
-                        feedback.innerHTML = '<i class="fa-solid fa-trophy me-1"></i> Campaign Complete!';
-                        setTimeout(async () => {
-                            if (document.fullscreenElement) await document.exitFullscreen();
-                            window.location.replace('../dashboard.html');
-                        }, 1500);
-                    }
-                }, 1500);
+                // Show choice modal
+                const modal = document.getElementById('nextQuestionModal');
+                const rewardText = document.getElementById('rewardText');
+                
+                rewardText.innerText = `+${testState.level.xp_reward} XP Earned`;
+                
+                testState.active = false;
+                setTimeout(() => {
+                    const choiceModal = new bootstrap.Modal(modal);
+                    choiceModal.show();
+                }, 800);
+
             } else {
-                // INCORRECT
+                // INCORRECT ANSWER
                 feedback.className = 'ms-4 fw-bold fs-4 text-danger';
                 feedback.innerHTML = '<i class="fa-solid fa-xmark-circle me-1"></i> Incorrect. Try again.';
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-terminal me-2"></i> Compile & Submit';
             }
+        });
+
+        // Next Question Button
+        document.getElementById('btnNextQuestion').addEventListener('click', async () => {
+            if (nextLevelId) {
+                window.location.replace('level.html?id=' + nextLevelId);
+            } else {
+                // No more levels - campaign complete
+                const modal = bootstrap.Modal.getInstance(document.getElementById('nextQuestionModal'));
+                modal.hide();
+                
+                document.getElementById('feedback').innerHTML = '<i class="fa-solid fa-trophy me-1"></i> Campaign Complete!';
+                
+                setTimeout(async () => {
+                    if (document.fullscreenElement) await document.exitFullscreen();
+                    window.location.replace('../dashboard.html');
+                }, 1500);
+            }
+        });
+
+        // Back to Dashboard Button
+        document.getElementById('btnBackDashboard').addEventListener('click', async () => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('nextQuestionModal'));
+            modal.hide();
+            
+            testState.active = false;
+            setTimeout(async () => {
+                if (document.fullscreenElement) await document.exitFullscreen();
+                window.location.replace('../dashboard.html');
+            }, 500);
         });
 
         // ==================== EXIT TEST ====================
