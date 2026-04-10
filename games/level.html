@@ -27,7 +27,14 @@
         <i class="fa-solid fa-expand mb-4 text-primary" style="font-size: 5rem;"></i>
         <h1 class="font-brand text-white fw-bold mb-3">Fullscreen Required</h1>
         <p class="text-muted fs-5 mb-5 text-center" style="max-width: 600px;">To ensure test integrity, this level must be completed in true fullscreen mode. Exiting fullscreen or switching tabs will trigger the anti-cheat system.</p>
-        <button id="btnEnterFullscreen" class="btn-stitch px-5 py-3 fs-4"><i class="fa-solid fa-power-off me-2"></i> Initiate Proctoring</button>
+        <button id="btnEnterFullscreen" class="btn-stitch px-5 py-3 fs-4" type="button" onclick="window.startProctoring()"><i class="fa-solid fa-power-off me-2"></i> Initiate Proctoring</button>
+        <p id="fullscreenStatus" class="text-white-50 small mt-3">Click the button to begin the test.</p>
+    </div>
+
+    <!-- COUNTDOWN OVERLAY (Shown during initialization) -->
+    <div id="countdownOverlay" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 12, 16, 0.95); z-index: 9998; flex-direction: column; align-items: center; justify-content: center;">
+        <p class="text-muted mb-4" style="font-size: 1.25rem;">Test starting in:</p>
+        <p class="text-primary fw-bold" style="font-size: 5rem; margin: 0;" id="countdownDisplay">3</p>
     </div>
 
     <!-- MAIN UI (Hidden behind gate initially) -->
@@ -49,8 +56,11 @@
         <div class="container-fluid px-5 py-4 animate-fade-in flex-grow-1 d-flex flex-column">
             <div class="glass-panel p-5 border-primary flex-grow-1 d-flex flex-column">
                 
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary font-monospace py-2 px-3 fs-6" id="lvlBadge">Loading...</span>
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary bg-opacity-25 text-primary border border-primary font-monospace py-2 px-3 fs-6" id="lvlBadge">Loading...</span>
+                        <span id="lvlTypeBadge" class="badge bg-secondary bg-opacity-25 text-white border border-secondary font-monospace py-2 px-3 fs-6">TYPE</span>
+                    </div>
                     <span class="text-warning fw-bold fs-5" id="lvlBounty">XP</span>
                 </div>
 
@@ -60,10 +70,14 @@
                 <div class="p-5 bg-dark rounded border border-secondary mb-5 position-relative flex-grow-1" style="font-family: monospace; white-space: pre-wrap; font-size: 1.4rem; color: #a5b4fc;" id="lvlQuestion">
                     ... 
                 </div>
+                <div id="theoryComponent" class="alert alert-secondary border-secondary text-white d-none mt-3">
+                    <strong>Theory Level:</strong> Provide a complete written explanation below. Use the exact expected answer phrase when possible.
+                </div>
 
                 <div class="mb-4 mt-auto">
-                    <label class="text-muted small mb-2 text-uppercase fw-bold tracking-widest fs-6">Execute Script / Inject Output</label>
-                    <input type="text" id="userAnswer" class="form-control form-stitch fs-4 py-4" placeholder="> Enter strictly formatted response here" autocomplete="off">
+                    <label class="text-muted small mb-2 text-uppercase fw-bold tracking-widest fs-6" id="answerLabel">Execute Script / Inject Output</label>
+                    <textarea id="userAnswer" class="form-control form-stitch fs-4 py-3" rows="3" placeholder="> Enter strictly formatted response here" autocomplete="off"></textarea>
+                    <p id="theoryHelper" class="text-muted small mt-2">Answer must match the expected output exactly.</p>
                 </div>
 
                 <div class="d-flex align-items-center mt-3">
@@ -101,27 +115,7 @@
         let cheatModalObj = null;
         let isProctoringActive = false;
         let isCleared = false; 
-
-        // Setup Robust Fullscreen Initialization (Includes Visual CSS Fallback if Browser blocks API)
-        document.getElementById('btnEnterFullscreen').addEventListener('click', async () => {
-            try {
-                if (document.documentElement.requestFullscreen) {
-                    await document.documentElement.requestFullscreen();
-                } else {
-                    // Fallback to strict CSS Fullscreen covering 100vw!
-                    document.getElementById('mainInterface').classList.add('fallback-fullscreen');
-                }
-            } catch (err) {
-                // If API rejects, still apply CSS Fullscreen override!
-                document.getElementById('mainInterface').classList.add('fallback-fullscreen');
-            }
-            
-            document.getElementById('fullscreenGate').style.display = 'none';
-            document.getElementById('mainInterface').style.display = 'flex';
-            
-            // Allow 1 second before proctor begins tracking focus
-            setTimeout(() => { isProctoringActive = true; }, 1000);
-        });
+        let countdownInterval = null;
 
         async function safeExit() {
             isCleared = true; 
@@ -130,6 +124,139 @@
             }
             window.location.replace('../dashboard.html');
         }
+
+        async function startCountdown(seconds) {
+            return new Promise((resolve) => {
+                const timer = document.getElementById('countdownTimer');
+                const display = document.getElementById('countdownDisplay');
+                
+                if (!timer || !display) {
+                    console.warn('Countdown timer elements not found, skipping timer');
+                    setTimeout(() => resolve(), seconds * 1000);
+                    return;
+                }
+                
+                if (timer) timer.style.display = 'block';
+                
+                let remaining = seconds;
+                if (display) display.innerText = remaining;
+
+                countdownInterval = setInterval(() => {
+                    remaining--;
+                    if (display) display.innerText = remaining;
+                    console.log('Countdown:', remaining);
+                    
+                    if (remaining <= 0) {
+                        clearInterval(countdownInterval);
+                        countdownInterval = null;
+                        if (timer) timer.style.display = 'none';
+                        console.log('Countdown complete');
+                        resolve();
+                    }
+                }, 1000);
+            });
+        }
+
+        async function startProctoring() {
+            console.log('>>> startProctoring() called');
+            const gate = document.getElementById('fullscreenGate');
+            const mainInterface = document.getElementById('mainInterface');
+            const statusEl = document.getElementById('fullscreenStatus');
+            const btn = document.getElementById('btnEnterFullscreen');
+            
+            if (!gate || !mainInterface) {
+                console.error('❌ Proctoring UI elements not found');
+                alert('Error: Proctoring interface not found. Please refresh the page.');
+                return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+            }
+            
+            if (statusEl) statusEl.innerText = 'Requesting fullscreen...';
+            console.log('Status: Requesting fullscreen');
+
+            const requestFullscreen = 
+                document.documentElement.requestFullscreen ||
+                document.documentElement.webkitRequestFullscreen ||
+                document.documentElement.mozRequestFullScreen ||
+                document.documentElement.msRequestFullscreen;
+
+            if (!requestFullscreen) {
+                console.warn('⚠ Fullscreen API not supported');
+                if (statusEl) statusEl.innerText = 'Browser fullscreen not supported. Starting in fallback mode.';
+                
+                mainInterface.classList.add('fallback-fullscreen');
+                mainInterface.style.position = 'fixed';
+                mainInterface.style.top = '0';
+                mainInterface.style.left = '0';
+                mainInterface.style.width = '100vw';
+                mainInterface.style.height = '100vh';
+                mainInterface.style.zIndex = '9999';
+                
+                gate.style.display = 'none';
+                mainInterface.style.display = 'flex';
+                
+                console.log('Starting countdown...');
+                await startCountdown(3);
+                isProctoringActive = true;
+                console.log('✅ Proctoring started (fallback - no API support)');
+                return;
+            }
+
+            try {
+                console.log('Attempting fullscreen...');
+                await requestFullscreen.call(document.documentElement);
+                console.log('✅ Fullscreen activated');
+                if (statusEl) statusEl.innerText = 'Fullscreen activated. Preparing test...';
+                
+                gate.style.display = 'none';
+                mainInterface.style.display = 'flex';
+                
+                console.log('Starting countdown...');
+                await startCountdown(3);
+                isProctoringActive = true;
+                console.log('✅ Proctoring started (fullscreen)');
+            } catch (err) {
+                console.error('❌ Fullscreen request failed:', err.message || err);
+                if (statusEl) {
+                    statusEl.innerText = 'Fullscreen blocked. Using fallback mode to continue.';
+                    statusEl.style.color = '#ff6b6b';
+                }
+                
+                // CSS fallback
+                mainInterface.classList.add('fallback-fullscreen');
+                mainInterface.style.position = 'fixed';
+                mainInterface.style.top = '0';
+                mainInterface.style.left = '0';
+                mainInterface.style.width = '100vw';
+                mainInterface.style.height = '100vh';
+                mainInterface.style.zIndex = '9999';
+                
+                gate.style.display = 'none';
+                mainInterface.style.display = 'flex';
+                
+                console.log('Starting countdown...');
+                await startCountdown(3);
+                isProctoringActive = true;
+                console.log('✅ Proctoring started (fallback - after rejection)');
+            }
+        }
+
+        // Make globally accessible
+        window.startProctoring = startProctoring;
+        console.debug('startProctoring registered globally');
+
+        // Track fullscreen state changes
+        document.addEventListener('fullscreenchange', () => {
+            console.log('Fullscreen state changed. Element:', document.fullscreenElement ? 'Active' : 'Inactive');
+        });
+
+        document.addEventListener('fullscreenerror', (event) => {
+            console.error('Fullscreen error event:', event);
+        });
 
         document.addEventListener('DOMContentLoaded', () => { 
             cheatModalObj = new bootstrap.Modal(document.getElementById('cheatModal'));
@@ -179,11 +306,28 @@
                 const { data } = await supabase.from('levels').select('*').eq('id', id).single();
                 if(data) {
                     curLvl = data;
+                    const qType = (data.question_type || 'code').toLowerCase();
+                    const isTheory = qType === 'theory';
+                    const answerLabel = document.getElementById('answerLabel');
+                    const answerInput = document.getElementById('userAnswer');
+                    const theoryComponent = document.getElementById('theoryComponent');
+                    const theoryHelper = document.getElementById('theoryHelper');
+
                     document.getElementById('lvlBadge').innerText = `SECTOR LEVEL ${data.level_number}`;
                     document.getElementById('lvlBounty').innerText = `+${data.xp_reward} XP`;
                     document.getElementById('lvlTitle').innerText = data.title;
                     document.getElementById('lvlDesc').innerText = data.description;
                     document.getElementById('lvlQuestion').innerText = data.question;
+
+                    answerLabel.innerText = isTheory ? 'Theory Response / Explanation' : 'Execute Script / Inject Output';
+                    answerInput.placeholder = isTheory ? 'Write your theory response here...' : '> Enter strictly formatted response here';
+                    answerInput.rows = isTheory ? 6 : 3;
+                    answerInput.value = '';
+                    theoryComponent.style.display = isTheory ? 'block' : 'none';
+                    theoryHelper.innerText = isTheory ? 'Theory questions require a written answer, but the comparison is still exact and case-insensitive.' : 'Answer should match the expected output exactly.';
+                    const typeBadge = document.getElementById('lvlTypeBadge');
+                    typeBadge.innerText = isTheory ? 'THEORY' : 'CODE';
+                    typeBadge.className = isTheory ? 'badge bg-info bg-opacity-20 text-info border border-info font-monospace py-2 px-3 fs-6' : 'badge bg-secondary bg-opacity-25 text-white border border-secondary font-monospace py-2 px-3 fs-6';
                 }
             }, 800);
         });

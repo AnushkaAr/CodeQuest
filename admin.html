@@ -60,50 +60,98 @@
                     <!-- Builder Form -->
                     <div class="col-lg-5">
                         <div class="glass-panel p-4">
-                            <h4 class="text-white mb-4"><i class="fa-solid fa-hammer text-primary me-2"></i> Blueprint Editor</h4>
-                            
-                            <form id="levelBuilderForm">
-                                <div class="mb-3">
-                                    <label class="text-muted small mb-1">Level Title</label>
-                                    <input type="text" id="bTitle" class="form-control form-stitch" required>
-                                </div>
-                                <div class="row mb-3 g-2">
-                                    <div class="col-6">
-                                        <label class="text-muted small mb-1">Sequence #</label>
-                                        <input type="number" id="bNum" class="form-control form-stitch" placeholder="1, 2, 3..." required>
+                            <div class="d-flex gap-2 mb-4">
+                                <button type="button" id="modeCodeBtn" class="btn btn-primary flex-fill">Code Questions</button>
+                                <button type="button" id="modeTheoryBtn" class="btn btn-outline-light flex-fill">Theory Questions</button>
+                            </div>
+
+                            <div id="codeBuilderFormContainer">
+                                <h4 class="text-white mb-4"><i class="fa-solid fa-hammer text-primary me-2"></i> Code Blueprint</h4>
+                                <form id="codeBuilderForm">
+                                    <div class="mb-3">
+                                        <label class="text-muted small mb-1">Level Title</label>
+                                        <input type="text" id="codeTitle" class="form-control form-stitch" required>
                                     </div>
-                                    <div class="col-6">
-                                        <label class="text-muted small mb-1">XP Bounty</label>
-                                        <input type="number" id="bXP" class="form-control form-stitch" value="25" required>
+                                    <div class="row mb-3 g-2">
+                                        <div class="col-6">
+                                            <label class="text-muted small mb-1">Sequence #</label>
+                                            <input type="number" id="codeNum" class="form-control form-stitch" placeholder="1, 2, 3..." required>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="text-muted small mb-1">XP Bounty</label>
+                                            <input type="number" id="codeXP" class="form-control form-stitch" value="25" required>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="text-muted small mb-1">Intel Description</label>
-                                    <textarea id="bDesc" class="form-control form-stitch" rows="2" placeholder="Briefing for the cadet..." required></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="text-muted small mb-1">Code / Problem Snippet</label>
-                                    <textarea id="bQuest" class="form-control form-stitch font-monospace" rows="4" placeholder="function hack() { ... }" required></textarea>
-                                </div>
-                                <div class="mb-4">
-                                    <label class="text-muted small mb-1">Strict Expected Output</label>
-                                    <input type="text" id="bAns" class="form-control form-stitch" placeholder="e.g., true, 404, variableName" required>
-                                </div>
-                                
-                                <button type="submit" id="bSubmit" class="btn-stitch w-100">Deploy to Server <i class="fa-solid fa-cloud-arrow-up ms-2"></i></button>
-                                <div id="bMsg" class="mt-3 text-center small fw-bold"></div>
-                            </form>
+                                    <div class="mb-3">
+                                        <label class="text-muted small mb-1">Intel Description</label>
+                                        <textarea id="codeDesc" class="form-control form-stitch" rows="2" placeholder="Briefing for the cadet..." required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="text-muted small mb-1">Code / Problem Snippet</label>
+                                        <textarea id="codeQuest" class="form-control form-stitch font-monospace" rows="4" placeholder="function hack() { ... }" required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="text-muted small mb-1">Strict Expected Output</label>
+                                        <input type="text" id="codeAns" class="form-control form-stitch" placeholder="e.g., true, 404, variableName" required>
+                                    </div>
+                                    <input type="hidden" id="codeEditId" value="">
+                                    <button type="submit" id="codeSubmit" class="btn-stitch w-100">Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i></button>
+                                </form>
+                            </div>
+
+                            <div id="theoryBuilderFormContainer" style="display: none;">
+                                <h4 class="text-white mb-4"><i class="fa-solid fa-brain text-info me-2"></i> Theory Blueprint</h4>
+                                <form id="theoryBuilderForm">
+                                    <div class="mb-3">
+                                        <label class="text-muted small mb-1">Level Title</label>
+                                        <input type="text" id="theoryTitle" class="form-control form-stitch" required>
+                                    </div>
+                                    <div class="row mb-3 g-2">
+                                        <div class="col-6">
+                                            <label class="text-muted small mb-1">Sequence #</label>
+                                            <input type="number" id="theoryNum" class="form-control form-stitch" placeholder="1, 2, 3..." required>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="text-muted small mb-1">XP Bounty</label>
+                                            <input type="number" id="theoryXP" class="form-control form-stitch" value="25" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="text-muted small mb-1">Intel Description</label>
+                                        <textarea id="theoryDesc" class="form-control form-stitch" rows="2" placeholder="Briefing for the cadet..." required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="text-muted small mb-1">Theory Prompt</label>
+                                        <textarea id="theoryQuest" class="form-control form-stitch" rows="4" placeholder="Describe the concept or principle..." required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="text-muted small mb-1">Expected Answer</label>
+                                        <input type="text" id="theoryAns" class="form-control form-stitch" placeholder="Type the exact answer phrase here" required>
+                                    </div>
+                                    <input type="hidden" id="theoryEditId" value="">
+                                    <button type="submit" id="theorySubmit" class="btn btn-info w-100 text-white">Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i></button>
+                                </form>
+                            </div>
+
+                            <div id="builderMsg" class="mt-3 text-center small fw-bold"></div>
                         </div>
                     </div>
-                    
+
                     <!-- Live Levels -->
                     <div class="col-lg-7">
                         <div class="glass-panel p-4 h-100">
-                             <h4 class="text-white mb-4"><i class="fa-solid fa-database text-primary me-2"></i> Active Matrix</h4>
+                             <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h4 class="text-white mb-0"><i class="fa-solid fa-database text-primary me-2"></i> Active Matrix</h4>
+                                <select id="levelTypeFilter" class="form-select form-select-sm w-auto">
+                                    <option value="all">All Types</option>
+                                    <option value="code">Code</option>
+                                    <option value="theory">Theory</option>
+                                </select>
+                             </div>
                              <div class="table-responsive">
                                 <table class="table table-dark align-middle" style="background: transparent;">
-                                    <thead><tr class="text-muted"><th class="border-secondary">Lvl</th><th class="border-secondary w-50">Title</th><th class="border-secondary">Output</th><th class="border-secondary text-end">Bounty</th></tr></thead>
-                                    <tbody id="levelsTableBody"><tr><td colspan="4" class="text-center text-muted border-secondary py-4">Syncing levels...</td></tr></tbody>
+                                    <thead><tr class="text-muted"><th class="border-secondary">Lvl</th><th class="border-secondary w-40">Title</th><th class="border-secondary">Type</th><th class="border-secondary">Output</th><th class="border-secondary text-end">Action</th></tr></thead>
+                                    <tbody id="levelsTableBody"><tr><td colspan="5" class="text-center text-muted border-secondary py-4">Syncing levels...</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -132,7 +180,89 @@
             tab.style.background = 'rgba(99, 102, 241, 0.15)'; tab.style.borderRadius = '8px';
         };
 
-        // --- Data Fetchers ---
+        const setAdminMode = (mode) => {
+            const codeContainer = document.getElementById('codeBuilderFormContainer');
+            const theoryContainer = document.getElementById('theoryBuilderFormContainer');
+            const modeCodeBtn = document.getElementById('modeCodeBtn');
+            const modeTheoryBtn = document.getElementById('modeTheoryBtn');
+
+            if (mode === 'theory') {
+                codeContainer.style.display = 'none';
+                theoryContainer.style.display = 'block';
+                modeCodeBtn.classList.remove('btn-primary');
+                modeCodeBtn.classList.add('btn-outline-light');
+                modeTheoryBtn.classList.remove('btn-outline-light');
+                modeTheoryBtn.classList.add('btn-info');
+            } else {
+                codeContainer.style.display = 'block';
+                theoryContainer.style.display = 'none';
+                modeCodeBtn.classList.add('btn-primary');
+                modeCodeBtn.classList.remove('btn-outline-light');
+                modeTheoryBtn.classList.add('btn-outline-light');
+                modeTheoryBtn.classList.remove('btn-info');
+            }
+        };
+
+        const adminState = {
+            levels: [],
+            filter: 'all'
+        };
+
+        const showBuilderMessage = (text, type = 'success') => {
+            const msg = document.getElementById('builderMsg');
+            msg.textContent = text;
+            msg.className = `mt-3 text-center small fw-bold text-${type}`;
+        };
+
+        const resetCodeForm = () => {
+            document.getElementById('codeBuilderForm').reset();
+            document.getElementById('codeEditId').value = '';
+            document.getElementById('codeSubmit').innerHTML = 'Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
+        };
+
+        const resetTheoryForm = () => {
+            document.getElementById('theoryBuilderForm').reset();
+            document.getElementById('theoryEditId').value = '';
+            document.getElementById('theorySubmit').innerHTML = 'Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
+        };
+
+        const renderLevels = () => {
+            const tbody = document.getElementById('levelsTableBody');
+            const filter = adminState.filter;
+            const visibleLevels = adminState.levels.filter(l => {
+                if (filter === 'all') return true;
+                return (l.question_type || 'code').toLowerCase() === filter;
+            });
+
+            if (!visibleLevels.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted border-secondary py-4">No ${filter === 'all' ? 'levels' : filter + ' questions'} found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            visibleLevels.forEach(l => {
+                const typeLabel = (l.question_type || 'code').toUpperCase();
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="border-secondary py-3 fw-bold">${l.level_number}</td>
+                        <td class="border-secondary text-white">${l.title}</td>
+                        <td class="border-secondary"><span class="badge bg-secondary bg-opacity-25 text-white">${typeLabel}</span></td>
+                        <td class="border-secondary font-monospace text-info small">${l.expected_answer}</td>
+                        <td class="border-secondary text-end">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Level actions">
+                                <button type="button" class="btn btn-outline-warning" title="Edit question" onclick="editLevel('${l.id}')">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" title="Delete question" onclick="deleteLevel('${l.id}')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        };
+
         async function pingStudents() {
             if(!supabase || !window.App || !window.App.user) return;
             const { data, error } = await supabase.from('profiles').select('*').order('score', { ascending: false });
@@ -155,51 +285,132 @@
 
         async function pingLevels() {
             if(!supabase || !window.App || !window.App.user) return;
-            const { data, error } = await supabase.from('levels').select('level_number, title, xp_reward, expected_answer').order('level_number', {ascending: true});
+            const { data, error } = await supabase.from('levels').select('*').order('level_number', {ascending: true});
             const tbody = document.getElementById('levelsTableBody');
-            if(error) return tbody.innerHTML = `<tr><td colspan="4" class="text-danger py-4">${error.message}</td></tr>`;
-            if(!data.length) return tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted border-secondary py-4">Matrix is completely empty.</td></tr>`;
-            
-            tbody.innerHTML = '';
-            data.forEach(l => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="border-secondary py-3 fw-bold">${l.level_number}</td>
-                        <td class="border-secondary text-white">${l.title}</td>
-                        <td class="border-secondary font-monospace text-info small">${l.expected_answer}</td>
-                        <td class="border-secondary text-end text-warning fw-bold">+${l.xp_reward}</td>
-                    </tr>
-                `;
-            });
+            if(error) return tbody.innerHTML = `<tr><td colspan="5" class="text-danger py-4">${error.message}</td></tr>`;
+            adminState.levels = data || [];
+            if(!adminState.levels.length) return tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted border-secondary py-4">Matrix is completely empty.</td></tr>`;
+            renderLevels();
         }
 
-        // --- Form Uploader ---
-        document.getElementById('levelBuilderForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('bSubmit');
-            const msg = document.getElementById('bMsg');
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Deploying...';
-            
-            const payload = {
-                title: document.getElementById('bTitle').value,
-                level_number: parseInt(document.getElementById('bNum').value),
-                description: document.getElementById('bDesc').value,
-                question: document.getElementById('bQuest').value,
-                expected_answer: document.getElementById('bAns').value,
-                xp_reward: parseInt(document.getElementById('bXP').value)
-            };
-            
-            const { error } = await supabase.from('levels').insert([payload]);
+        async function deleteLevel(id) {
+            if(!id || !confirm('Delete this level permanently?')) return;
+            const { error } = await supabase.from('levels').delete().eq('id', id);
             if(error) {
-                msg.textContent = "Compile Error: " + error.message; msg.className = "mt-3 small fw-bold text-danger";
-            } else {
-                msg.textContent = "Deployment successful."; msg.className = "mt-3 small fw-bold text-success";
-                document.getElementById('levelBuilderForm').reset();
-                pingLevels(); 
+                alert('Unable to delete level: ' + error.message);
+                return;
             }
-            btn.innerHTML = 'Deploy to Server <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
+            showBuilderMessage('Level deleted successfully.', 'success');
+            pingLevels();
+        }
+
+        async function editLevel(id) {
+            if(!id) return;
+            const { data, error } = await supabase.from('levels').select('*').eq('id', id).single();
+            if(error || !data) {
+                showBuilderMessage('Unable to load level for edit.', 'danger');
+                return;
+            }
+
+            const type = (data.question_type || 'code').toLowerCase();
+            setAdminMode(type);
+
+            if (type === 'theory') {
+                document.getElementById('theoryEditId').value = data.id;
+                document.getElementById('theoryTitle').value = data.title;
+                document.getElementById('theoryNum').value = data.level_number;
+                document.getElementById('theoryXP').value = data.xp_reward;
+                document.getElementById('theoryDesc').value = data.description;
+                document.getElementById('theoryQuest').value = data.question;
+                document.getElementById('theoryAns').value = data.expected_answer;
+                document.getElementById('theorySubmit').innerHTML = 'Update Theory Question <i class="fa-solid fa-save ms-2"></i>';
+                showBuilderMessage('Editing theory question: ' + data.title, 'info');
+            } else {
+                document.getElementById('codeEditId').value = data.id;
+                document.getElementById('codeTitle').value = data.title;
+                document.getElementById('codeNum').value = data.level_number;
+                document.getElementById('codeXP').value = data.xp_reward;
+                document.getElementById('codeDesc').value = data.description;
+                document.getElementById('codeQuest').value = data.question;
+                document.getElementById('codeAns').value = data.expected_answer;
+                document.getElementById('codeSubmit').innerHTML = 'Update Code Question <i class="fa-solid fa-save ms-2"></i>';
+                showBuilderMessage('Editing code question: ' + data.title, 'info');
+            }
+        }
+
+        document.getElementById('modeCodeBtn').addEventListener('click', () => setAdminMode('code'));
+        document.getElementById('modeTheoryBtn').addEventListener('click', () => setAdminMode('theory'));
+        document.getElementById('levelTypeFilter').addEventListener('change', (e) => {
+            adminState.filter = e.target.value;
+            renderLevels();
         });
 
+        document.getElementById('codeBuilderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('codeSubmit');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+            const editId = document.getElementById('codeEditId').value;
+            const payload = {
+                title: document.getElementById('codeTitle').value,
+                level_number: parseInt(document.getElementById('codeNum').value, 10),
+                description: document.getElementById('codeDesc').value,
+                question: document.getElementById('codeQuest').value,
+                expected_answer: document.getElementById('codeAns').value,
+                xp_reward: parseInt(document.getElementById('codeXP').value, 10),
+                question_type: 'code'
+            };
+
+            let result;
+            if (editId) {
+                result = await supabase.from('levels').update(payload).eq('id', editId);
+            } else {
+                result = await supabase.from('levels').insert([payload]);
+            }
+
+            if (result.error) {
+                showBuilderMessage('Error: ' + result.error.message, 'danger');
+            } else {
+                showBuilderMessage(editId ? 'Code question updated.' : 'Code question created.', 'success');
+                resetCodeForm();
+                pingLevels();
+            }
+            btn.innerHTML = editId ? 'Update Code Question <i class="fa-solid fa-save ms-2"></i>' : 'Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
+        });
+
+        document.getElementById('theoryBuilderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('theorySubmit');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+            const editId = document.getElementById('theoryEditId').value;
+            const payload = {
+                title: document.getElementById('theoryTitle').value,
+                level_number: parseInt(document.getElementById('theoryNum').value, 10),
+                description: document.getElementById('theoryDesc').value,
+                question: document.getElementById('theoryQuest').value,
+                expected_answer: document.getElementById('theoryAns').value,
+                xp_reward: parseInt(document.getElementById('theoryXP').value, 10),
+                question_type: 'theory'
+            };
+
+            let result;
+            if (editId) {
+                result = await supabase.from('levels').update(payload).eq('id', editId);
+            } else {
+                result = await supabase.from('levels').insert([payload]);
+            }
+
+            if (result.error) {
+                showBuilderMessage('Error: ' + result.error.message, 'danger');
+            } else {
+                showBuilderMessage(editId ? 'Theory question updated.' : 'Theory question created.', 'success');
+                resetTheoryForm();
+                pingLevels();
+            }
+            btn.innerHTML = editId ? 'Update Theory Question <i class="fa-solid fa-save ms-2"></i>' : 'Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
+        });
+
+        // Start in code mode by default
+        setAdminMode('code');
     </script>
 </body>
 </html>

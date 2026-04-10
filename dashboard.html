@@ -52,6 +52,14 @@
                     <a href="games/fixcode.html" class="btn-stitch w-100 mt-auto" style="opacity:0.5; pointer-events:none;">Under Construction</a>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div id="theoryCard" class="glass-panel p-4 h-100 d-flex flex-column border-secondary">
+                    <i class="fa-solid fa-brain fs-1 text-info mb-3"></i>
+                    <h4 class="text-white mb-2">Theory Brief</h4>
+                    <p id="theoryCardText" class="text-muted small">Solve concept-based questions with precise written explanations and earn XP for mastery.</p>
+                    <a id="theoryCardButton" href="javascript:void(0)" class="btn btn-outline-info w-100 mt-auto disabled" style="opacity:0.6; pointer-events:none;">Launching Soon</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -67,22 +75,25 @@
             c.innerHTML = (!data || data.length === 0) ? '<p class="text-muted ms-3">No active levels found.</p>' : '';
             
             data?.forEach(lvl => {
-                // strict logic fixing
+                const levelType = (lvl.question_type || 'code').toLowerCase();
+                const isTheory = levelType === 'theory';
                 const isLocked = lvl.level_number > uLvl; 
                 const isDone = lvl.level_number < uLvl; 
                 
                 const brd = isLocked ? 'border-secondary' : (isDone ? 'border-success' : 'border-primary');
                 const sdo = isLocked ? 'opacity: 0.5;' : '';
                 
-                // Prominent Solved status icons vs Unlocked vs Locked
+                const typeBadge = `<span class="badge bg-secondary bg-opacity-25 text-white py-2 px-3 me-2">${levelType.toUpperCase()}</span>`;
                 const topBadge = isLocked ? `<span class="badge bg-dark border border-secondary text-muted py-2"><i class="fa-solid fa-lock me-1"></i> Lvl ${lvl.level_number}</span>`
                                : (isDone ? `<span class="badge bg-success bg-opacity-25 border border-success text-success py-2"><i class="fa-solid fa-check-double me-1"></i> SOLVED</span>`
                                : `<span class="badge bg-dark border border-primary text-primary py-2"><i class="fa-solid fa-unlock me-1"></i> ACTIVE SECTOR</span>`);
                 
-                // Button Logic! Completely change visual mapping.
-                let btn = isLocked ? `<button class="btn btn-secondary w-100 disabled text-white" style="background:rgba(255,255,255,0.05); border:none;"><i class="fa-solid fa-lock me-2"></i> Firewall Active</button>` 
+                const actionLabel = isTheory ? 'Read Theory' : 'Execute Code';
+                const actionIcon = isTheory ? 'fa-book-open' : 'fa-play';
+                const actionClass = isDone ? 'btn btn-outline-success' : 'btn-stitch';
+                const btn = isLocked ? `<button class="btn btn-secondary w-100 disabled text-white" style="background:rgba(255,255,255,0.05); border:none;"><i class="fa-solid fa-lock me-2"></i> Firewall Active</button>` 
                         : (isDone ? `<a href="games/level.html?id=${lvl.id}" class="btn btn-outline-success w-100"><i class="fa-solid fa-rotate-right me-2"></i> Play Again</a>`
-                        : `<a href="games/level.html?id=${lvl.id}" class="btn-stitch w-100"><i class="fa-solid fa-play me-2"></i> Execute Code</a>`);
+                        : `<a href="games/level.html?id=${lvl.id}" class="${actionClass} w-100"><i class="fa-solid ${actionIcon} me-2"></i> ${actionLabel}</a>`);
                 
                 c.innerHTML += `
                 <div class="col-md-6 col-lg-3">
@@ -92,6 +103,7 @@
                             ${topBadge}
                         </div>
                         <h5 class="text-white mb-2">${lvl.title}</h5>
+                        <div class="mb-2">${typeBadge}</div>
                         <p class="text-muted small">${lvl.description}</p>
                         <div class="mt-auto pt-3">
                             <span class="text-${isDone ? 'success' : 'warning'} small fw-bold mb-3 d-block">${isDone ? 'Bounty Collected' : '+' + lvl.xp_reward + ' XP'}</span>
@@ -100,6 +112,39 @@
                     </div>
                 </div>`;
             });
+
+            const theoryCardButton = document.getElementById('theoryCardButton');
+            const theoryCardText = document.getElementById('theoryCardText');
+            const theoryLevels = data.filter(l => ((l.question_type || 'code').toLowerCase()) === 'theory');
+
+            if (theoryLevels.length > 0) {
+                const availableTheory = theoryLevels.find(l => l.level_number <= uLvl) || theoryLevels[0];
+                const isTheoryLocked = availableTheory.level_number > uLvl;
+                const targetId = availableTheory.id;
+
+                if (!isTheoryLocked) {
+                    theoryCardButton.className = 'btn-stitch w-100 mt-auto';
+                    theoryCardButton.style.opacity = '1';
+                    theoryCardButton.style.pointerEvents = 'auto';
+                    theoryCardButton.href = `games/level.html?id=${targetId}`;
+                    theoryCardButton.innerHTML = '<i class="fa-solid fa-book-open me-2"></i> Read Theory';
+                    theoryCardText.innerText = 'Open the next theory briefing challenge available for your rank.';
+                } else {
+                    theoryCardButton.className = 'btn btn-outline-secondary w-100 mt-auto disabled';
+                    theoryCardButton.style.opacity = '0.6';
+                    theoryCardButton.style.pointerEvents = 'none';
+                    theoryCardButton.href = 'javascript:void(0)';
+                    theoryCardButton.innerText = `Locked until level ${availableTheory.level_number}`;
+                    theoryCardText.innerText = `A theory challenge is ready, but you must reach level ${availableTheory.level_number} to unlock it.`;
+                }
+            } else {
+                theoryCardButton.className = 'btn btn-outline-secondary w-100 mt-auto disabled';
+                theoryCardButton.style.opacity = '0.6';
+                theoryCardButton.style.pointerEvents = 'none';
+                theoryCardButton.href = 'javascript:void(0)';
+                theoryCardButton.innerText = 'Launching Soon';
+                theoryCardText.innerText = 'No theory challenge is active yet.';
+            }
         };
     </script>
 </body>
