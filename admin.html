@@ -274,6 +274,15 @@
             return window.supabase;
         };
 
+        // ─── Timeout wrapper — aborts if Supabase hangs (RLS / network) ──────
+        const withTimeout = (promise, ms = 8000) =>
+            Promise.race([
+                promise,
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Request timed out. Check Supabase RLS policies or your internet connection.')), ms)
+                )
+            ]);
+
         // ─── Render Levels Table ──────────────────────────────────────────────
         const renderLevels = () => {
             const tbody = document.getElementById('levelsTableBody');
@@ -493,9 +502,12 @@
 
             try {
                 // FIX 5: Properly destructure { error } from Supabase v2 response
-                const { error } = editId
-                    ? await sb.from('levels').update(payload).eq('id', editId)
-                    : await sb.from('levels').insert([payload]);
+                // withTimeout prevents infinite hang if RLS blocks the request
+                const { error } = await withTimeout(
+                    editId
+                        ? sb.from('levels').update(payload).eq('id', editId)
+                        : sb.from('levels').insert([payload])
+                );
 
                 if (error) {
                     showBuilderMessage('Error: ' + error.message, 'danger');
@@ -544,9 +556,11 @@
             };
 
             try {
-                const { error } = editId
-                    ? await sb.from('levels').update(payload).eq('id', editId)
-                    : await sb.from('levels').insert([payload]);
+                const { error } = await withTimeout(
+                    editId
+                        ? sb.from('levels').update(payload).eq('id', editId)
+                        : sb.from('levels').insert([payload])
+                );
 
                 if (error) {
                     showBuilderMessage('Error: ' + error.message, 'danger');
