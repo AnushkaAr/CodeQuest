@@ -21,15 +21,21 @@
                 
                 <ul class="nav flex-column gap-2 mb-auto">
                     <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link text-white" id="tab-overview" onclick="switchView('overview')" style="background: rgba(99, 102, 241, 0.15); border-radius: 8px;"><i class="fa-solid fa-chart-line me-3" style="width: 20px;"></i> Overview</a>
+                        <a href="javascript:void(0)" class="nav-link text-white" id="tab-overview" onclick="switchView('overview')" style="background: rgba(99, 102, 241, 0.15); border-radius: 8px;">
+                            <i class="fa-solid fa-chart-line me-3" style="width: 20px;"></i> Overview
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link text-muted" id="tab-levels" onclick="switchView('levels')"><i class="fa-solid fa-layer-group me-3" style="width: 20px;"></i> Builder UI</a>
+                        <a href="javascript:void(0)" class="nav-link text-muted" id="tab-levels" onclick="switchView('levels')">
+                            <i class="fa-solid fa-layer-group me-3" style="width: 20px;"></i> Builder UI
+                        </a>
                     </li>
                 </ul>
 
                 <div class="mt-5 pt-4 border-top border-secondary position-absolute bottom-0 mb-4" style="width: calc(100% - 48px);">
-                     <button class="btn btn-outline-danger w-100 btn-logout"><i class="fa-solid fa-power-off me-2"></i> Log Out</button>
+                    <button class="btn btn-outline-danger w-100 btn-logout">
+                        <i class="fa-solid fa-power-off me-2"></i> Log Out
+                    </button>
                 </div>
             </div>
         </div>
@@ -45,8 +51,17 @@
                     <h4 class="text-white mb-4"><i class="fa-solid fa-users text-primary me-2"></i> Registered Students</h4>
                     <div class="table-responsive">
                         <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
-                            <thead><tr class="text-muted"><th class="border-secondary">User</th><th class="border-secondary">Role</th><th class="border-secondary">Current Lvl</th><th class="border-secondary text-end">Total XP</th></tr></thead>
-                            <tbody id="studentTableBody"><tr><td colspan="4" class="text-center text-muted border-secondary py-4">Syncing database...</td></tr></tbody>
+                            <thead>
+                                <tr class="text-muted">
+                                    <th class="border-secondary">User</th>
+                                    <th class="border-secondary">Role</th>
+                                    <th class="border-secondary">Current Lvl</th>
+                                    <th class="border-secondary text-end">Total XP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody">
+                                <tr><td colspan="4" class="text-center text-muted border-secondary py-4">Syncing database...</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -65,6 +80,7 @@
                                 <button type="button" id="modeTheoryBtn" class="btn btn-outline-light flex-fill">Theory Questions</button>
                             </div>
 
+                            <!-- CODE FORM -->
                             <div id="codeBuilderFormContainer">
                                 <h4 class="text-white mb-4"><i class="fa-solid fa-hammer text-primary me-2"></i> Code Blueprint</h4>
                                 <form id="codeBuilderForm">
@@ -95,10 +111,13 @@
                                         <input type="text" id="codeAns" class="form-control form-stitch" placeholder="e.g., true, 404, variableName" required>
                                     </div>
                                     <input type="hidden" id="codeEditId" value="">
-                                    <button type="submit" id="codeSubmit" class="btn-stitch w-100">Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i></button>
+                                    <button type="submit" id="codeSubmit" class="btn-stitch w-100">
+                                        Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>
+                                    </button>
                                 </form>
                             </div>
 
+                            <!-- THEORY FORM -->
                             <div id="theoryBuilderFormContainer" style="display: none;">
                                 <h4 class="text-white mb-4"><i class="fa-solid fa-brain text-info me-2"></i> Theory Blueprint</h4>
                                 <form id="theoryBuilderForm">
@@ -129,7 +148,9 @@
                                         <input type="text" id="theoryAns" class="form-control form-stitch" placeholder="Type the exact answer phrase here" required>
                                     </div>
                                     <input type="hidden" id="theoryEditId" value="">
-                                    <button type="submit" id="theorySubmit" class="btn btn-info w-100 text-white">Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i></button>
+                                    <button type="submit" id="theorySubmit" class="btn btn-info w-100 text-white">
+                                        Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>
+                                    </button>
                                 </form>
                             </div>
 
@@ -140,18 +161,28 @@
                     <!-- Live Levels -->
                     <div class="col-lg-7">
                         <div class="glass-panel p-4 h-100">
-                             <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
                                 <h4 class="text-white mb-0"><i class="fa-solid fa-database text-primary me-2"></i> Active Matrix</h4>
                                 <select id="levelTypeFilter" class="form-select form-select-sm w-auto">
                                     <option value="all">All Types</option>
                                     <option value="code">Code</option>
                                     <option value="theory">Theory</option>
                                 </select>
-                             </div>
-                             <div class="table-responsive">
+                            </div>
+                            <div class="table-responsive">
                                 <table class="table table-dark align-middle" style="background: transparent;">
-                                    <thead><tr class="text-muted"><th class="border-secondary">Lvl</th><th class="border-secondary w-40">Title</th><th class="border-secondary">Type</th><th class="border-secondary">Output</th><th class="border-secondary text-end">Action</th></tr></thead>
-                                    <tbody id="levelsTableBody"><tr><td colspan="5" class="text-center text-muted border-secondary py-4">Syncing levels...</td></tr></tbody>
+                                    <thead>
+                                        <tr class="text-muted">
+                                            <th class="border-secondary">Lvl</th>
+                                            <th class="border-secondary">Title</th>
+                                            <th class="border-secondary">Type</th>
+                                            <th class="border-secondary">Output</th>
+                                            <th class="border-secondary text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="levelsTableBody">
+                                        <tr><td colspan="5" class="text-center text-muted border-secondary py-4">Syncing levels...</td></tr>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -160,41 +191,50 @@
             </div>
 
         </div>
-    </div> <!-- End Admin Dashboard -->
+    </div>
     
     <script src="app.js"></script>
     <script>
-        // Global hook for app.js to trigger when profile loaded
-        window.renderAdminBoards = () => { pingStudents(); pingLevels(); };
 
+        // ─── Global hook for app.js ───────────────────────────────────────────
+        window.renderAdminBoards = () => {
+            pingStudents();
+            pingLevels();
+        };
+
+        // ─── View Switcher ────────────────────────────────────────────────────
         const switchView = (v) => {
             document.querySelectorAll('.admin-view').forEach(e => e.style.display = 'none');
             document.querySelectorAll('.nav-link').forEach(e => {
-                e.classList.remove('text-white'); e.classList.add('text-muted');
-                e.style.background = 'transparent'; e.style.borderRadius = '0';
+                e.classList.remove('text-white');
+                e.classList.add('text-muted');
+                e.style.background = 'transparent';
+                e.style.borderRadius = '0';
             });
-            
             document.getElementById('view-' + v).style.display = 'block';
             const tab = document.getElementById('tab-' + v);
-            tab.classList.remove('text-muted'); tab.classList.add('text-white');
-            tab.style.background = 'rgba(99, 102, 241, 0.15)'; tab.style.borderRadius = '8px';
+            tab.classList.remove('text-muted');
+            tab.classList.add('text-white');
+            tab.style.background = 'rgba(99, 102, 241, 0.15)';
+            tab.style.borderRadius = '8px';
         };
 
+        // ─── Mode Switcher (Code / Theory) ───────────────────────────────────
         const setAdminMode = (mode) => {
-            const codeContainer = document.getElementById('codeBuilderFormContainer');
+            const codeContainer   = document.getElementById('codeBuilderFormContainer');
             const theoryContainer = document.getElementById('theoryBuilderFormContainer');
-            const modeCodeBtn = document.getElementById('modeCodeBtn');
-            const modeTheoryBtn = document.getElementById('modeTheoryBtn');
+            const modeCodeBtn     = document.getElementById('modeCodeBtn');
+            const modeTheoryBtn   = document.getElementById('modeTheoryBtn');
 
             if (mode === 'theory') {
-                codeContainer.style.display = 'none';
+                codeContainer.style.display   = 'none';
                 theoryContainer.style.display = 'block';
                 modeCodeBtn.classList.remove('btn-primary');
                 modeCodeBtn.classList.add('btn-outline-light');
                 modeTheoryBtn.classList.remove('btn-outline-light');
                 modeTheoryBtn.classList.add('btn-info');
             } else {
-                codeContainer.style.display = 'block';
+                codeContainer.style.display   = 'block';
                 theoryContainer.style.display = 'none';
                 modeCodeBtn.classList.add('btn-primary');
                 modeCodeBtn.classList.remove('btn-outline-light');
@@ -203,11 +243,10 @@
             }
         };
 
-        const adminState = {
-            levels: [],
-            filter: 'all'
-        };
+        // ─── State ────────────────────────────────────────────────────────────
+        const adminState = { levels: [], filter: 'all' };
 
+        // ─── UI Helpers ───────────────────────────────────────────────────────
         const showBuilderMessage = (text, type = 'success') => {
             const msg = document.getElementById('builderMsg');
             msg.textContent = text;
@@ -226,6 +265,7 @@
             document.getElementById('theorySubmit').innerHTML = 'Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
         };
 
+        // ─── Render Levels Table ──────────────────────────────────────────────
         const renderLevels = () => {
             const tbody = document.getElementById('levelsTableBody');
             const filter = adminState.filter;
@@ -246,14 +286,16 @@
                     <tr>
                         <td class="border-secondary py-3 fw-bold">${l.level_number}</td>
                         <td class="border-secondary text-white">${l.title}</td>
-                        <td class="border-secondary"><span class="badge bg-secondary bg-opacity-25 text-white">${typeLabel}</span></td>
+                        <td class="border-secondary">
+                            <span class="badge bg-secondary bg-opacity-25 text-white">${typeLabel}</span>
+                        </td>
                         <td class="border-secondary font-monospace text-info small">${l.expected_answer}</td>
                         <td class="border-secondary text-end">
-                            <div class="btn-group btn-group-sm" role="group" aria-label="Level actions">
-                                <button type="button" class="btn btn-outline-warning" title="Edit question" onclick="editLevel('${l.id}')">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-warning" title="Edit" onclick="editLevel('${l.id}')">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
-                                <button type="button" class="btn btn-outline-danger" title="Delete question" onclick="deleteLevel('${l.id}')">
+                                <button type="button" class="btn btn-outline-danger" title="Delete" onclick="deleteLevel('${l.id}')">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </div>
@@ -263,53 +305,113 @@
             });
         };
 
+        // ─── Fetch Students ───────────────────────────────────────────────────
         async function pingStudents() {
-            if(!supabase || !window.App || !window.App.user) return;
-            const { data, error } = await supabase.from('profiles').select('*').order('score', { ascending: false });
+            if (!window.supabase || !window.App || !window.App.user) return;
+
+            const { data, error } = await window.supabase
+                .from('profiles')
+                .select('*')
+                .order('score', { ascending: false });
+
             const tbody = document.getElementById('studentTableBody');
-            if(error) return tbody.innerHTML = `<tr><td colspan="4" class="text-danger py-4">${error.message}</td></tr>`;
-            
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-danger py-4">${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!data || !data.length) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted border-secondary py-4">No students yet.</td></tr>`;
+                return;
+            }
+
             tbody.innerHTML = '';
             data.forEach(p => {
                 const isAd = p.role === 'admin';
                 tbody.innerHTML += `
                     <tr>
                         <td class="border-secondary py-3 text-white fw-bold">${p.username}</td>
-                        <td class="border-secondary"><span class="badge ${isAd ? 'bg-danger':'bg-primary'} bg-opacity-25 ${isAd?'text-danger':'text-primary'}">${p.role.toUpperCase()}</span></td>
-                        <td class="border-secondary"><i class="fa-solid fa-angles-up text-muted me-2"></i> ${p.current_level}</td>
+                        <td class="border-secondary">
+                            <span class="badge ${isAd ? 'bg-danger' : 'bg-primary'} bg-opacity-25 ${isAd ? 'text-danger' : 'text-primary'}">
+                                ${p.role.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="border-secondary"><i class="fa-solid fa-angles-up text-muted me-2"></i>${p.current_level}</td>
                         <td class="border-secondary text-end text-warning fw-bold">${p.score} XP</td>
                     </tr>
                 `;
             });
         }
+
+        // ─── Fetch Levels ─────────────────────────────────────────────────────
         async function pingLevels() {
             if (!window.supabase || !window.App || !window.App.user) return;
+
             const { data, error } = await window.supabase
-           .from('levels').select('*').order('level_number', {ascending: true});
+                .from('levels')
+                .select('*')
+                .order('level_number', { ascending: true });
+
             const tbody = document.getElementById('levelsTableBody');
-            if (error) return tbody.innerHTML = `<tr><td colspan="5" class="text-danger py-4">${error.message}</td></tr>`;
-            adminState.levels = data || [];
-            if (!adminState.levels.length) return tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted border-secondary py-4">Matrix is completely empty.</td></tr>`;
-            renderLevels();
-}
 
-
-
-        async function deleteLevel(id) {
-            if(!id || !confirm('Delete this level permanently?')) return;
-            const { error } = await supabase.from('levels').delete().eq('id', id);
-            if(error) {
-                alert('Unable to delete level: ' + error.message);
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-danger py-4">${error.message}</td></tr>`;
                 return;
             }
-            showBuilderMessage('Level deleted successfully.', 'success');
-            pingLevels();
+
+            adminState.levels = data || [];
+
+            if (!adminState.levels.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted border-secondary py-4">Matrix is completely empty.</td></tr>`;
+                return;
+            }
+
+            renderLevels();
         }
 
+        // ─── DELETE Level ─────────────────────────────────────────────────────
+        async function deleteLevel(id) {
+            if (!id) return;
+            if (!confirm('Delete this level permanently?')) return;
+
+            if (!window.supabase) {
+                alert('Supabase not connected!');
+                return;
+            }
+
+            try {
+                const { error } = await window.supabase
+                    .from('levels')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) {
+                    console.error('Delete error:', error);
+                    alert('Delete failed: ' + error.message);
+                    return;
+                }
+
+                showBuilderMessage('Level deleted successfully!', 'success');
+                await pingLevels();
+
+            } catch (e) {
+                console.error('Unexpected error:', e);
+                alert('Something went wrong: ' + e.message);
+            }
+        }
+
+        // ─── EDIT Level ───────────────────────────────────────────────────────
         async function editLevel(id) {
-            if(!id) return;
-            const { data, error } = await supabase.from('levels').select('*').eq('id', id).single();
-            if(error || !data) {
+            if (!id) return;
+
+            const { data, error } = await window.supabase
+                .from('levels')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error || !data) {
                 showBuilderMessage('Unable to load level for edit.', 'danger');
                 return;
             }
@@ -318,101 +420,114 @@
             setAdminMode(type);
 
             if (type === 'theory') {
-                document.getElementById('theoryEditId').value = data.id;
-                document.getElementById('theoryTitle').value = data.title;
-                document.getElementById('theoryNum').value = data.level_number;
-                document.getElementById('theoryXP').value = data.xp_reward;
-                document.getElementById('theoryDesc').value = data.description;
-                document.getElementById('theoryQuest').value = data.question;
-                document.getElementById('theoryAns').value = data.expected_answer;
+                document.getElementById('theoryEditId').value   = data.id;
+                document.getElementById('theoryTitle').value    = data.title;
+                document.getElementById('theoryNum').value      = data.level_number;
+                document.getElementById('theoryXP').value       = data.xp_reward;
+                document.getElementById('theoryDesc').value     = data.description;
+                document.getElementById('theoryQuest').value    = data.question;
+                document.getElementById('theoryAns').value      = data.expected_answer;
                 document.getElementById('theorySubmit').innerHTML = 'Update Theory Question <i class="fa-solid fa-save ms-2"></i>';
-                showBuilderMessage('Editing theory question: ' + data.title, 'info');
+                showBuilderMessage('Editing: ' + data.title, 'info');
             } else {
-                document.getElementById('codeEditId').value = data.id;
-                document.getElementById('codeTitle').value = data.title;
-                document.getElementById('codeNum').value = data.level_number;
-                document.getElementById('codeXP').value = data.xp_reward;
-                document.getElementById('codeDesc').value = data.description;
-                document.getElementById('codeQuest').value = data.question;
-                document.getElementById('codeAns').value = data.expected_answer;
+                document.getElementById('codeEditId').value   = data.id;
+                document.getElementById('codeTitle').value    = data.title;
+                document.getElementById('codeNum').value      = data.level_number;
+                document.getElementById('codeXP').value       = data.xp_reward;
+                document.getElementById('codeDesc').value     = data.description;
+                document.getElementById('codeQuest').value    = data.question;
+                document.getElementById('codeAns').value      = data.expected_answer;
                 document.getElementById('codeSubmit').innerHTML = 'Update Code Question <i class="fa-solid fa-save ms-2"></i>';
-                showBuilderMessage('Editing code question: ' + data.title, 'info');
+                showBuilderMessage('Editing: ' + data.title, 'info');
             }
         }
 
+        // ─── Event Listeners ──────────────────────────────────────────────────
         document.getElementById('modeCodeBtn').addEventListener('click', () => setAdminMode('code'));
         document.getElementById('modeTheoryBtn').addEventListener('click', () => setAdminMode('theory'));
+
         document.getElementById('levelTypeFilter').addEventListener('change', (e) => {
             adminState.filter = e.target.value;
             renderLevels();
         });
 
+        // ─── Code Form Submit ─────────────────────────────────────────────────
         document.getElementById('codeBuilderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('codeSubmit');
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+            const btn    = document.getElementById('codeSubmit');
             const editId = document.getElementById('codeEditId').value;
+
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+            btn.disabled  = true;
+
             const payload = {
-                title: document.getElementById('codeTitle').value,
-                level_number: parseInt(document.getElementById('codeNum').value, 10),
-                description: document.getElementById('codeDesc').value,
-                question: document.getElementById('codeQuest').value,
-                expected_answer: document.getElementById('codeAns').value,
-                xp_reward: parseInt(document.getElementById('codeXP').value, 10),
-                question_type: 'code'
+                title           : document.getElementById('codeTitle').value,
+                level_number    : parseInt(document.getElementById('codeNum').value, 10),
+                description     : document.getElementById('codeDesc').value,
+                question        : document.getElementById('codeQuest').value,
+                expected_answer : document.getElementById('codeAns').value,
+                xp_reward       : parseInt(document.getElementById('codeXP').value, 10),
+                question_type   : 'code'
             };
 
-            let result;
-            if (editId) {
-                result = await supabase.from('levels').update(payload).eq('id', editId);
-            } else {
-                result = await supabase.from('levels').insert([payload]);
-            }
+            const result = editId
+                ? await window.supabase.from('levels').update(payload).eq('id', editId)
+                : await window.supabase.from('levels').insert([payload]);
+
+            btn.disabled = false;
 
             if (result.error) {
                 showBuilderMessage('Error: ' + result.error.message, 'danger');
+                btn.innerHTML = editId
+                    ? 'Update Code Question <i class="fa-solid fa-save ms-2"></i>'
+                    : 'Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
             } else {
-                showBuilderMessage(editId ? 'Code question updated.' : 'Code question created.', 'success');
+                showBuilderMessage(editId ? 'Code question updated!' : 'Code question deployed!', 'success');
                 resetCodeForm();
-                pingLevels();
+                await pingLevels();
             }
-            btn.innerHTML = editId ? 'Update Code Question <i class="fa-solid fa-save ms-2"></i>' : 'Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
         });
 
+        // ─── Theory Form Submit ───────────────────────────────────────────────
         document.getElementById('theoryBuilderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('theorySubmit');
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+            const btn    = document.getElementById('theorySubmit');
             const editId = document.getElementById('theoryEditId').value;
+
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+            btn.disabled  = true;
+
             const payload = {
-                title: document.getElementById('theoryTitle').value,
-                level_number: parseInt(document.getElementById('theoryNum').value, 10),
-                description: document.getElementById('theoryDesc').value,
-                question: document.getElementById('theoryQuest').value,
-                expected_answer: document.getElementById('theoryAns').value,
-                xp_reward: parseInt(document.getElementById('theoryXP').value, 10),
-                question_type: 'theory'
+                title           : document.getElementById('theoryTitle').value,
+                level_number    : parseInt(document.getElementById('theoryNum').value, 10),
+                description     : document.getElementById('theoryDesc').value,
+                question        : document.getElementById('theoryQuest').value,
+                expected_answer : document.getElementById('theoryAns').value,
+                xp_reward       : parseInt(document.getElementById('theoryXP').value, 10),
+                question_type   : 'theory'
             };
 
-            let result;
-            if (editId) {
-                result = await supabase.from('levels').update(payload).eq('id', editId);
-            } else {
-                result = await supabase.from('levels').insert([payload]);
-            }
+            const result = editId
+                ? await window.supabase.from('levels').update(payload).eq('id', editId)
+                : await window.supabase.from('levels').insert([payload]);
+
+            btn.disabled = false;
 
             if (result.error) {
                 showBuilderMessage('Error: ' + result.error.message, 'danger');
+                btn.innerHTML = editId
+                    ? 'Update Theory Question <i class="fa-solid fa-save ms-2"></i>'
+                    : 'Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
             } else {
-                showBuilderMessage(editId ? 'Theory question updated.' : 'Theory question created.', 'success');
+                showBuilderMessage(editId ? 'Theory question updated!' : 'Theory question deployed!', 'success');
                 resetTheoryForm();
-                pingLevels();
+                await pingLevels();
             }
-            btn.innerHTML = editId ? 'Update Theory Question <i class="fa-solid fa-save ms-2"></i>' : 'Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
         });
 
-        // Start in code mode by default
+        // ─── Default Mode ─────────────────────────────────────────────────────
         setAdminMode('code');
+
     </script>
 </body>
 </html>
