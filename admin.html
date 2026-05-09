@@ -282,16 +282,18 @@
                 `;
             });
         }
-
         async function pingLevels() {
-            if(!supabase || !window.App || !window.App.user) return;
-            const { data, error } = await supabase.from('levels').select('*').order('level_number', {ascending: true});
+            if (!window.supabase || !window.App || !window.App.user) return;
+            const { data, error } = await window.supabase
+           .from('levels').select('*').order('level_number', {ascending: true});
             const tbody = document.getElementById('levelsTableBody');
-            if(error) return tbody.innerHTML = `<tr><td colspan="5" class="text-danger py-4">${error.message}</td></tr>`;
+            if (error) return tbody.innerHTML = `<tr><td colspan="5" class="text-danger py-4">${error.message}</td></tr>`;
             adminState.levels = data || [];
-            if(!adminState.levels.length) return tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted border-secondary py-4">Matrix is completely empty.</td></tr>`;
+            if (!adminState.levels.length) return tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted border-secondary py-4">Matrix is completely empty.</td></tr>`;
             renderLevels();
-        }
+}
+
+
 
         async function deleteLevel(id) {
             if(!id || !confirm('Delete this level permanently?')) return;
