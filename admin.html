@@ -265,6 +265,15 @@
             document.getElementById('theorySubmit').innerHTML = 'Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
         };
 
+        // ─── FIX 1: Guard helper — ensures Supabase is ready before any DB call ──
+        const getSupabase = () => {
+            if (!window.supabase) {
+                showBuilderMessage('Database not connected. Please refresh and try again.', 'danger');
+                return null;
+            }
+            return window.supabase;
+        };
+
         // ─── Render Levels Table ──────────────────────────────────────────────
         const renderLevels = () => {
             const tbody = document.getElementById('levelsTableBody');
@@ -307,9 +316,10 @@
 
         // ─── Fetch Students ───────────────────────────────────────────────────
         async function pingStudents() {
-            if (!window.supabase || !window.App || !window.App.user) return;
+            const sb = getSupabase();
+            if (!sb || !window.App || !window.App.user) return;
 
-            const { data, error } = await window.supabase
+            const { data, error } = await sb
                 .from('profiles')
                 .select('*')
                 .order('score', { ascending: false });
@@ -346,9 +356,10 @@
 
         // ─── Fetch Levels ─────────────────────────────────────────────────────
         async function pingLevels() {
-            if (!window.supabase || !window.App || !window.App.user) return;
+            const sb = getSupabase();
+            if (!sb || !window.App || !window.App.user) return;
 
-            const { data, error } = await window.supabase
+            const { data, error } = await sb
                 .from('levels')
                 .select('*')
                 .order('level_number', { ascending: true });
@@ -375,20 +386,18 @@
             if (!id) return;
             if (!confirm('Delete this level permanently?')) return;
 
-            if (!window.supabase) {
-                alert('Supabase not connected!');
-                return;
-            }
+            const sb = getSupabase();
+            if (!sb) return;
 
             try {
-                const { error } = await window.supabase
+                const { error } = await sb
                     .from('levels')
                     .delete()
                     .eq('id', id);
 
                 if (error) {
                     console.error('Delete error:', error);
-                    alert('Delete failed: ' + error.message);
+                    showBuilderMessage('Delete failed: ' + error.message, 'danger');
                     return;
                 }
 
@@ -397,7 +406,7 @@
 
             } catch (e) {
                 console.error('Unexpected error:', e);
-                alert('Something went wrong: ' + e.message);
+                showBuilderMessage('Something went wrong: ' + e.message, 'danger');
             }
         }
 
@@ -405,7 +414,10 @@
         async function editLevel(id) {
             if (!id) return;
 
-            const { data, error } = await window.supabase
+            const sb = getSupabase();
+            if (!sb) return;
+
+            const { data, error } = await sb
                 .from('levels')
                 .select('*')
                 .eq('id', id)
@@ -440,6 +452,9 @@
                 document.getElementById('codeSubmit').innerHTML = 'Update Code Question <i class="fa-solid fa-save ms-2"></i>';
                 showBuilderMessage('Editing: ' + data.title, 'info');
             }
+
+            // FIX 2: Scroll builder panel into view when editing
+            document.getElementById('codeBuilderFormContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         // ─── Event Listeners ──────────────────────────────────────────────────
@@ -454,75 +469,104 @@
         // ─── Code Form Submit ─────────────────────────────────────────────────
         document.getElementById('codeBuilderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // FIX 3: Guard Supabase before doing anything
+            const sb = getSupabase();
+            if (!sb) return;
+
             const btn    = document.getElementById('codeSubmit');
-            const editId = document.getElementById('codeEditId').value;
+            const editId = document.getElementById('codeEditId').value.trim();
 
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
             btn.disabled  = true;
 
+            // FIX 4: .trim() on all values to prevent whitespace-only saves
             const payload = {
-                title           : document.getElementById('codeTitle').value,
+                title           : document.getElementById('codeTitle').value.trim(),
                 level_number    : parseInt(document.getElementById('codeNum').value, 10),
-                description     : document.getElementById('codeDesc').value,
-                question        : document.getElementById('codeQuest').value,
-                expected_answer : document.getElementById('codeAns').value,
+                description     : document.getElementById('codeDesc').value.trim(),
+                question        : document.getElementById('codeQuest').value.trim(),
+                expected_answer : document.getElementById('codeAns').value.trim(),
                 xp_reward       : parseInt(document.getElementById('codeXP').value, 10),
                 question_type   : 'code'
             };
 
-            const result = editId
-                ? await window.supabase.from('levels').update(payload).eq('id', editId)
-                : await window.supabase.from('levels').insert([payload]);
+            try {
+                // FIX 5: Properly destructure { error } from Supabase v2 response
+                const { error } = editId
+                    ? await sb.from('levels').update(payload).eq('id', editId)
+                    : await sb.from('levels').insert([payload]);
 
-            btn.disabled = false;
-
-            if (result.error) {
-                showBuilderMessage('Error: ' + result.error.message, 'danger');
+                if (error) {
+                    showBuilderMessage('Error: ' + error.message, 'danger');
+                    btn.innerHTML = editId
+                        ? 'Update Code Question <i class="fa-solid fa-save ms-2"></i>'
+                        : 'Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
+                } else {
+                    showBuilderMessage(editId ? 'Code question updated!' : 'Code question deployed!', 'success');
+                    resetCodeForm();
+                    await pingLevels();
+                }
+            } catch (err) {
+                // FIX 6: Catch network/unexpected errors so button never stays stuck
+                console.error('Code form error:', err);
+                showBuilderMessage('Unexpected error: ' + err.message, 'danger');
                 btn.innerHTML = editId
                     ? 'Update Code Question <i class="fa-solid fa-save ms-2"></i>'
                     : 'Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
-            } else {
-                showBuilderMessage(editId ? 'Code question updated!' : 'Code question deployed!', 'success');
-                resetCodeForm();
-                await pingLevels();
             }
+
+            // FIX 7: Re-enable button AFTER try/catch so it always re-enables
+            btn.disabled = false;
         });
 
         // ─── Theory Form Submit ───────────────────────────────────────────────
         document.getElementById('theoryBuilderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const sb = getSupabase();
+            if (!sb) return;
+
             const btn    = document.getElementById('theorySubmit');
-            const editId = document.getElementById('theoryEditId').value;
+            const editId = document.getElementById('theoryEditId').value.trim();
 
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
             btn.disabled  = true;
 
             const payload = {
-                title           : document.getElementById('theoryTitle').value,
+                title           : document.getElementById('theoryTitle').value.trim(),
                 level_number    : parseInt(document.getElementById('theoryNum').value, 10),
-                description     : document.getElementById('theoryDesc').value,
-                question        : document.getElementById('theoryQuest').value,
-                expected_answer : document.getElementById('theoryAns').value,
+                description     : document.getElementById('theoryDesc').value.trim(),
+                question        : document.getElementById('theoryQuest').value.trim(),
+                expected_answer : document.getElementById('theoryAns').value.trim(),
                 xp_reward       : parseInt(document.getElementById('theoryXP').value, 10),
                 question_type   : 'theory'
             };
 
-            const result = editId
-                ? await window.supabase.from('levels').update(payload).eq('id', editId)
-                : await window.supabase.from('levels').insert([payload]);
+            try {
+                const { error } = editId
+                    ? await sb.from('levels').update(payload).eq('id', editId)
+                    : await sb.from('levels').insert([payload]);
 
-            btn.disabled = false;
-
-            if (result.error) {
-                showBuilderMessage('Error: ' + result.error.message, 'danger');
+                if (error) {
+                    showBuilderMessage('Error: ' + error.message, 'danger');
+                    btn.innerHTML = editId
+                        ? 'Update Theory Question <i class="fa-solid fa-save ms-2"></i>'
+                        : 'Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
+                } else {
+                    showBuilderMessage(editId ? 'Theory question updated!' : 'Theory question deployed!', 'success');
+                    resetTheoryForm();
+                    await pingLevels();
+                }
+            } catch (err) {
+                console.error('Theory form error:', err);
+                showBuilderMessage('Unexpected error: ' + err.message, 'danger');
                 btn.innerHTML = editId
                     ? 'Update Theory Question <i class="fa-solid fa-save ms-2"></i>'
                     : 'Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
-            } else {
-                showBuilderMessage(editId ? 'Theory question updated!' : 'Theory question deployed!', 'success');
-                resetTheoryForm();
-                await pingLevels();
             }
+
+            btn.disabled = false;
         });
 
         // ─── Default Mode ─────────────────────────────────────────────────────
