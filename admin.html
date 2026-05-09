@@ -265,7 +265,7 @@
             document.getElementById('theorySubmit').innerHTML = 'Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
         };
 
-        // ─── FIX 1: Guard helper — ensures Supabase is ready before any DB call ──
+        // ─── Guard helper ─────────────────────────────────────────────────────
         const getSupabase = () => {
             if (!window.supabase) {
                 showBuilderMessage('Database not connected. Please refresh and try again.', 'danger');
@@ -274,14 +274,23 @@
             return window.supabase;
         };
 
-        // ─── Timeout wrapper — aborts if Supabase hangs (RLS / network) ──────
-        const withTimeout = (promise, ms = 8000) =>
-            Promise.race([
-                promise,
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Request timed out. Check Supabase RLS policies or your internet connection.')), ms)
-                )
-            ]);
+        // ─── ✅ FIXED withTimeout — properly awaits Supabase promise ─────────
+        const withTimeout = async (queryBuilder, ms = 10000) => {
+            let timer;
+            const timeout = new Promise((_, reject) => {
+                timer = setTimeout(() => {
+                    reject(new Error('Request timed out. Check Supabase RLS policies or your internet connection.'));
+                }, ms);
+            });
+            try {
+                const result = await Promise.race([queryBuilder, timeout]);
+                clearTimeout(timer);
+                return result;
+            } catch (err) {
+                clearTimeout(timer);
+                throw err;
+            }
+        };
 
         // ─── Render Levels Table ──────────────────────────────────────────────
         const renderLevels = () => {
@@ -462,7 +471,6 @@
                 showBuilderMessage('Editing: ' + data.title, 'info');
             }
 
-            // FIX 2: Scroll builder panel into view when editing
             document.getElementById('codeBuilderFormContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -479,7 +487,6 @@
         document.getElementById('codeBuilderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // FIX 3: Guard Supabase before doing anything
             const sb = getSupabase();
             if (!sb) return;
 
@@ -489,7 +496,6 @@
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
             btn.disabled  = true;
 
-            // FIX 4: .trim() on all values to prevent whitespace-only saves
             const payload = {
                 title           : document.getElementById('codeTitle').value.trim(),
                 level_number    : parseInt(document.getElementById('codeNum').value, 10),
@@ -501,13 +507,15 @@
             };
 
             try {
-                // FIX 5: Properly destructure { error } from Supabase v2 response
-                // withTimeout prevents infinite hang if RLS blocks the request
-                const { error } = await withTimeout(
-                    editId
-                        ? sb.from('levels').update(payload).eq('id', editId)
-                        : sb.from('levels').insert([payload])
-                );
+                // ✅ FIXED: Direct await — no withTimeout wrapper needed for simple insert/update
+                let error;
+                if (editId) {
+                    const res = await sb.from('levels').update(payload).eq('id', editId);
+                    error = res.error;
+                } else {
+                    const res = await sb.from('levels').insert([payload]);
+                    error = res.error;
+                }
 
                 if (error) {
                     showBuilderMessage('Error: ' + error.message, 'danger');
@@ -515,12 +523,11 @@
                         ? 'Update Code Question <i class="fa-solid fa-save ms-2"></i>'
                         : 'Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
                 } else {
-                    showBuilderMessage(editId ? 'Code question updated!' : 'Code question deployed!', 'success');
+                    showBuilderMessage(editId ? 'Code question updated! ✅' : 'Code question deployed! ✅', 'success');
                     resetCodeForm();
                     await pingLevels();
                 }
             } catch (err) {
-                // FIX 6: Catch network/unexpected errors so button never stays stuck
                 console.error('Code form error:', err);
                 showBuilderMessage('Unexpected error: ' + err.message, 'danger');
                 btn.innerHTML = editId
@@ -528,7 +535,6 @@
                     : 'Deploy Code Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
             }
 
-            // FIX 7: Re-enable button AFTER try/catch so it always re-enables
             btn.disabled = false;
         });
 
@@ -556,11 +562,15 @@
             };
 
             try {
-                const { error } = await withTimeout(
-                    editId
-                        ? sb.from('levels').update(payload).eq('id', editId)
-                        : sb.from('levels').insert([payload])
-                );
+                // ✅ FIXED: Direct await — no withTimeout wrapper needed
+                let error;
+                if (editId) {
+                    const res = await sb.from('levels').update(payload).eq('id', editId);
+                    error = res.error;
+                } else {
+                    const res = await sb.from('levels').insert([payload]);
+                    error = res.error;
+                }
 
                 if (error) {
                     showBuilderMessage('Error: ' + error.message, 'danger');
@@ -568,7 +578,7 @@
                         ? 'Update Theory Question <i class="fa-solid fa-save ms-2"></i>'
                         : 'Deploy Theory Question <i class="fa-solid fa-cloud-arrow-up ms-2"></i>';
                 } else {
-                    showBuilderMessage(editId ? 'Theory question updated!' : 'Theory question deployed!', 'success');
+                    showBuilderMessage(editId ? 'Theory question updated! ✅' : 'Theory question deployed! ✅', 'success');
                     resetTheoryForm();
                     await pingLevels();
                 }
@@ -588,4 +598,5 @@
 
     </script>
 </body>
+</html>
 </html>
